@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - Sistem Klinik</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="nav-brand">🏥 Sistem Klinik</div>
+    <div class="nav-menu">
+      <a href="dashboard.html">Dashboard</a>
+      <a href="surat-sehat.html">Surat Sehat</a>
+      <a href="surat-sakit.html">Surat Sakit</a>
+      <a href="kwitansi.html">Kwitansi</a>
+      <button onclick="logout()" class="btn-logout">Logout</button>
+    </div>
+  </nav>
+
+  <!-- KONTEN -->
+  <div class="container">
+    <h1>Dashboard</h1>
+    <p class="subtitle">Selamat datang, Admin 👋</p>
+
+    <!-- KARTU STATISTIK -->
+    <div class="card-grid">
+      <div class="card blue">
+        <div class="card-icon">📄</div>
+        <div class="card-info">
+          <h3 id="total-ss">0</h3>
+          <p>Surat Sehat Bulan Ini</p>
+        </div>
+      </div>
+      <div class="card red">
+        <div class="card-icon">🤒</div>
+        <div class="card-info">
+          <h3 id="total-sk">0</h3>
+          <p>Surat Sakit Bulan Ini</p>
+        </div>
+      </div>
+      <div class="card green">
+        <div class="card-icon">🧾</div>
+        <div class="card-info">
+          <h3 id="total-kw">0</h3>
+          <p>Kwitansi Bulan Ini</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- TABEL DATA TERBARU -->
+    <div class="table-box">
+      <h2>Data Terbaru</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Nomor</th>
+            <th>Nama Pasien</th>
+            <th>Jenis</th>
+            <th>Tanggal</th>
+          </tr>
+        </thead>
+        <tbody id="tabel-data">
+          <tr>
+            <td colspan="4" style="text-align:center; color:#999;">
+              Belum ada data
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/dashboard.js"></script>
+</body>
+</html>
