@@ -58,12 +58,96 @@ async function loadTabelSK() {
         <td>${d.diagnosis || '-'}</td>
         <td>${d.lama_sakit || '-'} hari</td>
         <td>${formatTanggal(d.tanggal)}</td>
-        <td><button onclick="cetakSK('${d.nomor}')" class="btn-cetak">🖨️ Cetak</button></td>
+        <td>
+          <button onclick="cetakSK('${d.nomor}')" class="btn-cetak">🖨️</button>
+          <button onclick="editSK('${d.nomor}')" class="btn-edit">✏️</button>
+          <button onclick="hapusSK('${d.nomor}')" class="btn-hapus">🗑️</button>
+        </td>
       </tr>
     `).join('');
   } catch (err) {
     tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:red;">
       Gagal memuat data</td></tr>`;
+  }
+}
+
+async function hapusSK(nomor) {
+  if (!confirm(`Yakin ingin menghapus data ${nomor}?`)) return;
+
+  try {
+    const { error } = await db.from('surat_sakit').delete().eq('nomor', nomor);
+    if (error) throw error;
+    alert('Data berhasil dihapus!');
+    await loadTabelSK();
+    await updatePreviewNomor();
+  } catch (err) {
+    alert('Gagal hapus: ' + err.message);
+  }
+}
+
+async function editSK(nomor) {
+  const { data } = await db.from('surat_sakit').select('*').eq('nomor', nomor).single();
+  if (!data) return;
+
+  document.getElementById('nama').value        = data.nama        || '';
+  document.getElementById('nik').value         = data.nik         || '';
+  document.getElementById('tgl-lahir').value   = data.tgl_lahir   || '';
+  document.getElementById('jk').value          = data.jk          || '';
+  document.getElementById('alamat').value      = data.alamat      || '';
+  document.getElementById('diagnosis').value   = data.diagnosis   || '';
+  document.getElementById('lama-sakit').value  = data.lama_sakit  || '';
+  document.getElementById('tgl-mulai').value   = data.tgl_mulai   || '';
+  document.getElementById('tgl-selesai').value = data.tgl_selesai || '';
+  document.getElementById('keterangan').value  = data.keterangan  || '';
+
+  document.getElementById('preview-nomor').textContent = data.nomor;
+  window.editNomorSK = nomor;
+
+  const btn = document.querySelector('.btn-primary');
+  btn.textContent = '💾 Update Data';
+  btn.onclick = updateSK;
+
+  window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+async function updateSK() {
+  const nama = document.getElementById('nama').value.trim();
+  const nik  = document.getElementById('nik').value.trim();
+
+  if (!nama || !nik) {
+    alert('Nama dan NIK wajib diisi!');
+    return;
+  }
+
+  const data = {
+    nama,
+    nik,
+    tgl_lahir   : document.getElementById('tgl-lahir').value   || null,
+    jk          : document.getElementById('jk').value          || null,
+    alamat      : document.getElementById('alamat').value      || null,
+    diagnosis   : document.getElementById('diagnosis').value   || null,
+    lama_sakit  : parseInt(document.getElementById('lama-sakit').value) || null,
+    tgl_mulai   : document.getElementById('tgl-mulai').value   || null,
+    tgl_selesai : document.getElementById('tgl-selesai').value || null,
+    keterangan  : document.getElementById('keterangan').value  || null,
+  };
+
+  try {
+    const { error } = await db.from('surat_sakit')
+      .update(data).eq('nomor', window.editNomorSK);
+    if (error) throw error;
+
+    alert('Data berhasil diupdate!');
+    resetForm();
+    await loadTabelSK();
+
+    const btn = document.querySelector('.btn-primary');
+    btn.textContent = '💾 Simpan & Cetak';
+    btn.onclick = simpanSuratSakit;
+    window.editNomorSK = null;
+    await updatePreviewNomor();
+  } catch (err) {
+    alert('Gagal update: ' + err.message);
   }
 }
 

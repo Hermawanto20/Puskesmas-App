@@ -24,9 +24,15 @@ function formatRupiah(angka) {
 }
 
 function formatTanggal(tgl) {
-  return new Date(tgl).toLocaleDateString('id-ID', {
+  const d = new Date(tgl);
+  const tanggal = d.toLocaleDateString('id-ID', {
     day: '2-digit', month: 'long', year: 'numeric'
   });
+  const jam = d.toLocaleTimeString('id-ID', {
+    hour: '2-digit', minute: '2-digit',
+    hour12: false
+  }).replace('.', ':');
+  return `${tanggal}, ${jam}`;
 }
 
 function resetForm() {

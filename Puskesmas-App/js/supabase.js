@@ -8,18 +8,30 @@ const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 // FUNGSI PENOMORAN OTOMATIS (dari Supabase)
 // ==========================================
 async function generateNomorOnline(prefix, tabelName) {
-  const now   = new Date();
-  const tahun = now.getFullYear();
-  const bulan = String(now.getMonth() + 1).padStart(2, '0');
+  const now    = new Date();
+  const tahun  = now.getFullYear();
+  const bulan  = String(now.getMonth() + 1).padStart(2, '0');
   const bulanIni = `${tahun}-${bulan}`;
 
-  const { count } = await db
+  // Ambil nomor terakhir bulan ini
+  const { data } = await db
     .from(tabelName)
-    .select('*', { count: 'exact', head: true })
-    .eq('bulan', bulanIni);
+    .select('nomor')
+    .eq('bulan', bulanIni)
+    .order('nomor', { ascending: false })
+    .limit(1);
 
-  const urutan = String((count || 0) + 1).padStart(4, '0');
-  return `${prefix}-${tahun}-${bulan}-${urutan}`;
+  let urutan = 1;
+
+  if (data && data.length > 0) {
+    // Ambil angka urutan dari nomor terakhir
+    const nomorTerakhir = data[0].nomor;
+    const bagian = nomorTerakhir.split('-');
+    const urutanTerakhir = parseInt(bagian[bagian.length - 1]);
+    urutan = urutanTerakhir + 1;
+  }
+
+  return `${prefix}-${tahun}-${bulan}-${String(urutan).padStart(4, '0')}`;
 }
 
 // ==========================================

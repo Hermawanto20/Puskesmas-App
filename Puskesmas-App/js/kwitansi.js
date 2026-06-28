@@ -55,12 +55,90 @@ async function loadTabelKW() {
         <td>${d.layanan || '-'}</td>
         <td>${formatRupiah(d.jumlah)}</td>
         <td>${formatTanggal(d.tanggal)}</td>
-        <td><button onclick="cetakKW('${d.nomor}')" class="btn-cetak">🖨️ Cetak</button></td>
+        <td>
+          <button onclick="cetakKW('${d.nomor}')" class="btn-cetak">🖨️</button>
+          <button onclick="editKW('${d.nomor}')" class="btn-edit">✏️</button>
+          <button onclick="hapusKW('${d.nomor}')" class="btn-hapus">🗑️</button>
+        </td>
       </tr>
     `).join('');
   } catch (err) {
     tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:red;">
       Gagal memuat data</td></tr>`;
+  }
+}
+
+async function hapusKW(nomor) {
+  if (!confirm(`Yakin ingin menghapus data ${nomor}?`)) return;
+
+  try {
+    const { error } = await db.from('kwitansi').delete().eq('nomor', nomor);
+    if (error) throw error;
+    alert('Data berhasil dihapus!');
+    await loadTabelKW();
+    await updatePreviewNomor();
+  } catch (err) {
+    alert('Gagal hapus: ' + err.message);
+  }
+}
+
+async function editKW(nomor) {
+  const { data } = await db.from('kwitansi').select('*').eq('nomor', nomor).single();
+  if (!data) return;
+
+  document.getElementById('nama').value      = data.nama      || '';
+  document.getElementById('ref-surat').value = data.ref_surat || '';
+  document.getElementById('layanan').value   = data.layanan   || '';
+  document.getElementById('jumlah').value    = data.jumlah    || '';
+  document.getElementById('metode').value    = data.metode    || '';
+  document.getElementById('tgl-bayar').value = data.tgl_bayar || '';
+  document.getElementById('keterangan').value = data.keterangan || '';
+
+  document.getElementById('preview-nomor').textContent = data.nomor;
+  window.editNomorKW = nomor;
+
+  const btn = document.querySelector('.btn-primary');
+  btn.textContent = '💾 Update Data';
+  btn.onclick = updateKW;
+
+  window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+async function updateKW() {
+  const nama   = document.getElementById('nama').value.trim();
+  const jumlah = document.getElementById('jumlah').value;
+
+  if (!nama || !jumlah) {
+    alert('Nama dan jumlah bayar wajib diisi!');
+    return;
+  }
+
+  const data = {
+    nama,
+    ref_surat  : document.getElementById('ref-surat').value  || null,
+    layanan    : document.getElementById('layanan').value    || null,
+    jumlah     : parseInt(jumlah),
+    metode     : document.getElementById('metode').value     || null,
+    tgl_bayar  : document.getElementById('tgl-bayar').value  || null,
+    keterangan : document.getElementById('keterangan').value || null,
+  };
+
+  try {
+    const { error } = await db.from('kwitansi')
+      .update(data).eq('nomor', window.editNomorKW);
+    if (error) throw error;
+
+    alert('Data berhasil diupdate!');
+    resetForm();
+    await loadTabelKW();
+
+    const btn = document.querySelector('.btn-primary');
+    btn.textContent = '💾 Simpan & Cetak';
+    btn.onclick = simpanKwitansi;
+    window.editNomorKW = null;
+    await updatePreviewNomor();
+  } catch (err) {
+    alert('Gagal update: ' + err.message);
   }
 }
 
