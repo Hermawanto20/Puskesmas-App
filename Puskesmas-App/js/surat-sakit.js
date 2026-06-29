@@ -26,10 +26,7 @@ async function simpanSuratSakit() {
 
   try {
     await simpanSuratSakitOnline(data);
-    document.getElementById('pesan-sukses').style.display = 'block';
-    setTimeout(() => {
-      document.getElementById('pesan-sukses').style.display = 'none';
-    }, 3000);
+    tampilkanPopup('Surat Sakit berhasil disimpan!\nNomor: ' + nomor);
     resetForm();
     await loadTabelSK();
     await updatePreviewNomor();
@@ -77,7 +74,7 @@ async function hapusSK(nomor) {
   try {
     const { error } = await db.from('surat_sakit').delete().eq('nomor', nomor);
     if (error) throw error;
-    alert('Data berhasil dihapus!');
+    tampilkanPopup('Data Surat Sakit berhasil dihapus!');
     await loadTabelSK();
     await updatePreviewNomor();
   } catch (err) {
@@ -137,7 +134,7 @@ async function updateSK() {
       .update(data).eq('nomor', window.editNomorSK);
     if (error) throw error;
 
-    alert('Data berhasil diupdate!');
+    tampilkanPopup('Data Surat Sakit berhasil diupdate!');
     resetForm();
     await loadTabelSK();
 

@@ -23,10 +23,7 @@ async function simpanKwitansi() {
 
   try {
     await simpanKwitansiOnline(data);
-    document.getElementById('pesan-sukses').style.display = 'block';
-    setTimeout(() => {
-      document.getElementById('pesan-sukses').style.display = 'none';
-    }, 3000);
+    tampilkanPopup('Kwitansi berhasil disimpan!\nNomor: ' + nomor);
     resetForm();
     await loadTabelKW();
     await updatePreviewNomor();
@@ -74,7 +71,7 @@ async function hapusKW(nomor) {
   try {
     const { error } = await db.from('kwitansi').delete().eq('nomor', nomor);
     if (error) throw error;
-    alert('Data berhasil dihapus!');
+    tampilkanPopup('Data Kwitansi berhasil dihapus!');
     await loadTabelKW();
     await updatePreviewNomor();
   } catch (err) {
@@ -128,7 +125,7 @@ async function updateKW() {
       .update(data).eq('nomor', window.editNomorKW);
     if (error) throw error;
 
-    alert('Data berhasil diupdate!');
+    tampilkanPopup('Data Kwitansi berhasil diupdate!');
     resetForm();
     await loadTabelKW();
 

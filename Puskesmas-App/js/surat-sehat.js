@@ -24,10 +24,7 @@ async function simpanSuratSehat() {
 
   try {
     await simpanSuratSehatOnline(data);
-    document.getElementById('pesan-sukses').style.display = 'block';
-    setTimeout(() => {
-      document.getElementById('pesan-sukses').style.display = 'none';
-    }, 3000);
+   tampilkanPopup('Surat Sehat berhasil disimpan!\nNomor: ' + nomor);
     resetForm();
     await loadTabelSS();
     await updatePreviewNomor();
@@ -74,7 +71,7 @@ async function hapusSS(nomor) {
   try {
     const { error } = await db.from('surat_sehat').delete().eq('nomor', nomor);
     if (error) throw error;
-    alert('Data berhasil dihapus!');
+    tampilkanPopup('Data Surat Sehat berhasil dihapus!');
     await loadTabelSS();
     await updatePreviewNomor();
   } catch (err) {
@@ -136,7 +133,7 @@ async function updateSS() {
       .update(data).eq('nomor', window.editNomorSS);
     if (error) throw error;
 
-    alert('Data berhasil diupdate!');
+    tampilkanPopup('Data Surat Sehat berhasil diupdate!');
     resetForm();
     await loadTabelSS();
 

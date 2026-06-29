@@ -46,3 +46,17 @@ function logout() {
   localStorage.removeItem('isLogin');
   window.location.href = 'index.html';
 }
+
+function tampilkanPopup(pesan) {
+  document.getElementById('popup-msg').textContent = pesan;
+  document.getElementById('popup-sukses').style.display = 'flex';
+
+  // Reset tombol OK popup supaya tidak terpengaruh tombol form
+  const btnOK = document.getElementById('btn-popup-ok');
+  btnOK.textContent = 'OK';
+  btnOK.onclick = tutupPopup;
+}
+
+function tutupPopup() {
+  document.getElementById('popup-sukses').style.display = 'none';
+}
