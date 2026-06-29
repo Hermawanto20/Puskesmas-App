@@ -108,5 +108,4 @@ async function getStatistikBulanIni() {
     totalKW: kw.count || 0,
   };
 }
-  };
-}
+
