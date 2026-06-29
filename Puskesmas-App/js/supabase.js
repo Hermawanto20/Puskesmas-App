@@ -24,7 +24,6 @@ async function generateNomorOnline(prefix, tabelName) {
   let urutan = 1;
 
   if (data && data.length > 0) {
-    // Ambil angka urutan dari nomor terakhir
     const nomorTerakhir = data[0].nomor;
     const bagian = nomorTerakhir.split('-');
     const urutanTerakhir = parseInt(bagian[bagian.length - 1]);
@@ -107,5 +106,7 @@ async function getStatistikBulanIni() {
     totalSS: ss.count || 0,
     totalSK: sk.count || 0,
     totalKW: kw.count || 0,
+  };
+}
   };
 }
