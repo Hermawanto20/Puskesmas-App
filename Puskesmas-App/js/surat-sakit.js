@@ -36,15 +36,39 @@ async function simpanSuratSakit() {
 }
 
 async function loadTabelSK() {
+  await filterTabelSK();
+}
+
+function initFilterSK() {
+  const now = new Date();
+  document.getElementById('filter-bulan').value =
+    String(now.getMonth() + 1).padStart(2, '0');
+  document.getElementById('filter-tahun').value =
+    String(now.getFullYear());
+}
+
+async function filterTabelSK() {
+  const bulan  = document.getElementById('filter-bulan').value;
+  const tahun  = document.getElementById('filter-tahun').value;
+  const period = `${tahun}-${bulan}`;
+
   const tbody = document.getElementById('tabel-sk');
-  tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">Memuat data...</td></tr>`;
+  tbody.innerHTML = `<tr><td colspan="6" 
+    style="text-align:center;">Memuat data...</td></tr>`;
 
   try {
-    const data = await getSuratSakitBulanIni();
+    const { data, error } = await db
+      .from('surat_sakit')
+      .select('*')
+      .eq('bulan', period)
+      .order('tanggal', { ascending: false });
+
+    if (error) throw error;
 
     if (!data || data.length === 0) {
       tbody.innerHTML = `<tr><td colspan="6" 
-        style="text-align:center;color:#999;">Belum ada data bulan ini</td></tr>`;
+        style="text-align:center;color:#999;">
+        Belum ada data periode ini</td></tr>`;
       return;
     }
 
@@ -63,7 +87,8 @@ async function loadTabelSK() {
       </tr>
     `).join('');
   } catch (err) {
-    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:red;">
+    tbody.innerHTML = `<tr><td colspan="6" 
+      style="text-align:center;color:red;">
       Gagal memuat data</td></tr>`;
   }
 }
@@ -83,7 +108,8 @@ async function hapusSK(nomor) {
 }
 
 async function editSK(nomor) {
-  const { data } = await db.from('surat_sakit').select('*').eq('nomor', nomor).single();
+  const { data } = await db.from('surat_sakit')
+    .select('*').eq('nomor', nomor).single();
   if (!data) return;
 
   document.getElementById('nama').value        = data.nama        || '';
@@ -99,8 +125,9 @@ async function editSK(nomor) {
 
   document.getElementById('preview-nomor').textContent = data.nomor;
   window.editNomorSK = nomor;
+  window.isEditModeSK = true;
 
-  const btn = document.querySelector('.btn-primary');
+  const btn = document.getElementById('btn-simpan');
   btn.textContent = '💾 Update Data';
   btn.onclick = updateSK;
 
@@ -134,15 +161,20 @@ async function updateSK() {
       .update(data).eq('nomor', window.editNomorSK);
     if (error) throw error;
 
-    tampilkanPopup('Data Surat Sakit berhasil diupdate!');
-    resetForm();
-    await loadTabelSK();
+    window.editNomorSK = null;
+    window.isEditModeSK = false;
 
-    const btn = document.querySelector('.btn-primary');
+   const btn = document.getElementById('btn-simpan');
     btn.textContent = '💾 Simpan & Cetak';
     btn.onclick = simpanSuratSakit;
-    window.editNomorSK = null;
+
+    resetForm();
+    initFilterSK();
+    await loadTabelSK();
     await updatePreviewNomor();
+
+tampilkanPopup('Data Surat Sakit berhasil diupdate!');
+
   } catch (err) {
     alert('Gagal update: ' + err.message);
   }
@@ -154,7 +186,8 @@ async function updatePreviewNomor() {
 }
 
 async function cetakSK(nomor) {
-  const { data } = await db.from('surat_sakit').select('*').eq('nomor', nomor).single();
+  const { data } = await db.from('surat_sakit')
+    .select('*').eq('nomor', nomor).single();
   if (!data) return;
 
   const params = new URLSearchParams({
@@ -174,5 +207,7 @@ async function cetakSK(nomor) {
   window.open('cetak-surat-sakit.html?' + params.toString(), '_blank');
 }
 
+// Jalankan saat halaman dibuka
 updatePreviewNomor();
+initFilterSK();
 loadTabelSK();

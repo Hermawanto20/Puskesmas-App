@@ -33,15 +33,39 @@ async function simpanKwitansi() {
 }
 
 async function loadTabelKW() {
+  await filterTabelKW();
+}
+
+function initFilterKW() {
+  const now = new Date();
+  document.getElementById('filter-bulan').value =
+    String(now.getMonth() + 1).padStart(2, '0');
+  document.getElementById('filter-tahun').value =
+    String(now.getFullYear());
+}
+
+async function filterTabelKW() {
+  const bulan  = document.getElementById('filter-bulan').value;
+  const tahun  = document.getElementById('filter-tahun').value;
+  const period = `${tahun}-${bulan}`;
+
   const tbody = document.getElementById('tabel-kw');
-  tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">Memuat data...</td></tr>`;
+  tbody.innerHTML = `<tr><td colspan="6" 
+    style="text-align:center;">Memuat data...</td></tr>`;
 
   try {
-    const data = await getKwitansiBulanIni();
+    const { data, error } = await db
+      .from('kwitansi')
+      .select('*')
+      .eq('bulan', period)
+      .order('tanggal', { ascending: false });
+
+    if (error) throw error;
 
     if (!data || data.length === 0) {
       tbody.innerHTML = `<tr><td colspan="6" 
-        style="text-align:center;color:#999;">Belum ada data bulan ini</td></tr>`;
+        style="text-align:center;color:#999;">
+        Belum ada data periode ini</td></tr>`;
       return;
     }
 
@@ -60,7 +84,8 @@ async function loadTabelKW() {
       </tr>
     `).join('');
   } catch (err) {
-    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:red;">
+    tbody.innerHTML = `<tr><td colspan="6" 
+      style="text-align:center;color:red;">
       Gagal memuat data</td></tr>`;
   }
 }
@@ -80,21 +105,23 @@ async function hapusKW(nomor) {
 }
 
 async function editKW(nomor) {
-  const { data } = await db.from('kwitansi').select('*').eq('nomor', nomor).single();
+  const { data } = await db.from('kwitansi')
+    .select('*').eq('nomor', nomor).single();
   if (!data) return;
 
-  document.getElementById('nama').value      = data.nama      || '';
-  document.getElementById('ref-surat').value = data.ref_surat || '';
-  document.getElementById('layanan').value   = data.layanan   || '';
-  document.getElementById('jumlah').value    = data.jumlah    || '';
-  document.getElementById('metode').value    = data.metode    || '';
-  document.getElementById('tgl-bayar').value = data.tgl_bayar || '';
+  document.getElementById('nama').value       = data.nama       || '';
+  document.getElementById('ref-surat').value  = data.ref_surat  || '';
+  document.getElementById('layanan').value    = data.layanan    || '';
+  document.getElementById('jumlah').value     = data.jumlah     || '';
+  document.getElementById('metode').value     = data.metode     || '';
+  document.getElementById('tgl-bayar').value  = data.tgl_bayar  || '';
   document.getElementById('keterangan').value = data.keterangan || '';
 
   document.getElementById('preview-nomor').textContent = data.nomor;
   window.editNomorKW = nomor;
+  window.isEditModeKW = true;
 
-  const btn = document.querySelector('.btn-primary');
+  const btn = document.getElementById('btn-simpan');
   btn.textContent = '💾 Update Data';
   btn.onclick = updateKW;
 
@@ -125,15 +152,20 @@ async function updateKW() {
       .update(data).eq('nomor', window.editNomorKW);
     if (error) throw error;
 
-    tampilkanPopup('Data Kwitansi berhasil diupdate!');
-    resetForm();
-    await loadTabelKW();
+    window.editNomorKW = null;
+    window.isEditModeKW = false;
 
-    const btn = document.querySelector('.btn-primary');
+    const btn = document.getElementById('btn-simpan');
     btn.textContent = '💾 Simpan & Cetak';
     btn.onclick = simpanKwitansi;
-    window.editNomorKW = null;
-    await updatePreviewNomor();
+
+    resetForm();
+initFilterKW();
+await loadTabelKW();
+await updatePreviewNomor();
+
+tampilkanPopup('Data Kwitansi berhasil diupdate!');
+
   } catch (err) {
     alert('Gagal update: ' + err.message);
   }
@@ -145,7 +177,8 @@ async function updatePreviewNomor() {
 }
 
 async function cetakKW(nomor) {
-  const { data } = await db.from('kwitansi').select('*').eq('nomor', nomor).single();
+  const { data } = await db.from('kwitansi')
+    .select('*').eq('nomor', nomor).single();
   if (!data) return;
 
   const params = new URLSearchParams({
@@ -161,5 +194,7 @@ async function cetakKW(nomor) {
   window.open('cetak-kwitansi.html?' + params.toString(), '_blank');
 }
 
+// Jalankan saat halaman dibuka
 updatePreviewNomor();
+initFilterKW();
 loadTabelKW();

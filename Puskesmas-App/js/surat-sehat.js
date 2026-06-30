@@ -24,7 +24,7 @@ async function simpanSuratSehat() {
 
   try {
     await simpanSuratSehatOnline(data);
-   tampilkanPopup('Surat Sehat berhasil disimpan!\nNomor: ' + nomor);
+    tampilkanPopup('Surat Sehat berhasil disimpan!\nNomor: ' + nomor);
     resetForm();
     await loadTabelSS();
     await updatePreviewNomor();
@@ -34,15 +34,39 @@ async function simpanSuratSehat() {
 }
 
 async function loadTabelSS() {
+  await filterTabelSS();
+}
+
+function initFilterSS() {
+  const now = new Date();
+  document.getElementById('filter-bulan').value =
+    String(now.getMonth() + 1).padStart(2, '0');
+  document.getElementById('filter-tahun').value =
+    String(now.getFullYear());
+}
+
+async function filterTabelSS() {
+  const bulan  = document.getElementById('filter-bulan').value;
+  const tahun  = document.getElementById('filter-tahun').value;
+  const period = `${tahun}-${bulan}`;
+
   const tbody = document.getElementById('tabel-ss');
-  tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">Memuat data...</td></tr>`;
+  tbody.innerHTML = `<tr><td colspan="5" 
+    style="text-align:center;">Memuat data...</td></tr>`;
 
   try {
-    const data = await getSuratSehatBulanIni();
+    const { data, error } = await db
+      .from('surat_sehat')
+      .select('*')
+      .eq('bulan', period)
+      .order('tanggal', { ascending: false });
+
+    if (error) throw error;
 
     if (!data || data.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="6" 
-        style="text-align:center;color:#999;">Belum ada data bulan ini</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="5" 
+        style="text-align:center;color:#999;">
+        Belum ada data periode ini</td></tr>`;
       return;
     }
 
@@ -60,7 +84,8 @@ async function loadTabelSS() {
       </tr>
     `).join('');
   } catch (err) {
-    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:red;">
+    tbody.innerHTML = `<tr><td colspan="5" 
+      style="text-align:center;color:red;">
       Gagal memuat data</td></tr>`;
   }
 }
@@ -80,10 +105,10 @@ async function hapusSS(nomor) {
 }
 
 async function editSS(nomor) {
-  const { data } = await db.from('surat_sehat').select('*').eq('nomor', nomor).single();
+  const { data } = await db.from('surat_sehat')
+    .select('*').eq('nomor', nomor).single();
   if (!data) return;
 
-  // Isi form dengan data yang ada
   document.getElementById('nama').value        = data.nama        || '';
   document.getElementById('nik').value         = data.nik         || '';
   document.getElementById('tgl-lahir').value   = data.tgl_lahir   || '';
@@ -93,18 +118,14 @@ async function editSS(nomor) {
   document.getElementById('tgl-periksa').value = data.tgl_periksa || '';
   document.getElementById('keterangan').value  = data.keterangan  || '';
 
-  // Ganti nomor preview dengan nomor yang diedit
   document.getElementById('preview-nomor').textContent = data.nomor;
-
-  // Simpan nomor yang sedang diedit
   window.editNomorSS = nomor;
+  window.isEditModeSS = true;
 
-  // Ganti tombol simpan jadi update
-  const btn = document.querySelector('.btn-primary');
+  const btn = document.getElementById('btn-simpan');
   btn.textContent = '💾 Update Data';
   btn.onclick = updateSS;
 
-  // Scroll ke atas form
   window.scrollTo({top: 0, behavior: 'smooth'});
 }
 
@@ -133,23 +154,33 @@ async function updateSS() {
       .update(data).eq('nomor', window.editNomorSS);
     if (error) throw error;
 
-    tampilkanPopup('Data Surat Sehat berhasil diupdate!');
-    resetForm();
-    await loadTabelSS();
+    window.editNomorSS = null;
+    window.isEditModeSS = false;
 
-    // Kembalikan tombol simpan
-    const btn = document.querySelector('.btn-primary');
+    const btn = document.getElementById('btn-simpan');
     btn.textContent = '💾 Simpan & Cetak';
     btn.onclick = simpanSuratSehat;
-    window.editNomorSS = null;
+
+    resetForm();
+    initFilterSS();
+    await loadTabelSS();
     await updatePreviewNomor();
+
+tampilkanPopup('Data Surat Sehat berhasil diupdate!');
+
   } catch (err) {
     alert('Gagal update: ' + err.message);
   }
 }
 
+async function updatePreviewNomor() {
+  document.getElementById('preview-nomor').textContent =
+    await generateNomorOnline('SS', 'surat_sehat');
+}
+
 async function cetakSS(nomor) {
-  const { data } = await db.from('surat_sehat').select('*').eq('nomor', nomor).single();
+  const { data } = await db.from('surat_sehat')
+    .select('*').eq('nomor', nomor).single();
   if (!data) return;
 
   const params = new URLSearchParams({
@@ -167,11 +198,7 @@ async function cetakSS(nomor) {
   window.open('cetak-surat-sehat.html?' + params.toString(), '_blank');
 }
 
-async function updatePreviewNomor() {
-  document.getElementById('preview-nomor').textContent =
-    await generateNomorOnline('SS', 'surat_sehat');
-}
-
 // Jalankan saat halaman dibuka
 updatePreviewNomor();
+initFilterSS();
 loadTabelSS();
