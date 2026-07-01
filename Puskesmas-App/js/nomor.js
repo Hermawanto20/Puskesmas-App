@@ -60,3 +60,26 @@ function tampilkanPopup(pesan) {
 function tutupPopup() {
   document.getElementById('popup-sukses').style.display = 'none';
 }
+
+function tampilkanPopupHapus(pesan, onKonfirmasi) {
+  document.getElementById('popup-hapus-msg').textContent = pesan;
+  document.getElementById('popup-hapus').style.display = 'flex';
+
+  const btnOk = document.getElementById('btn-hapus-ok');
+  btnOk.onclick = function() {
+    tutupPopupHapus();
+    onKonfirmasi();
+  };
+}
+
+function tutupPopupHapus() {
+  document.getElementById('popup-hapus').style.display = 'none';
+}
+
+function getHariIni() {
+  const now = new Date();
+  const tahun = now.getFullYear();
+  const bulan = String(now.getMonth() + 1).padStart(2, '0');
+  const hari  = String(now.getDate()).padStart(2, '0');
+  return `${tahun}-${bulan}-${hari}`;
+}

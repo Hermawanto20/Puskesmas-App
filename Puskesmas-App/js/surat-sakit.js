@@ -36,22 +36,6 @@ async function simpanSuratSakit() {
 }
 
 async function loadTabelSK() {
-  await filterTabelSK();
-}
-
-function initFilterSK() {
-  const now = new Date();
-  document.getElementById('filter-bulan').value =
-    String(now.getMonth() + 1).padStart(2, '0');
-  document.getElementById('filter-tahun').value =
-    String(now.getFullYear());
-}
-
-async function filterTabelSK() {
-  const bulan  = document.getElementById('filter-bulan').value;
-  const tahun  = document.getElementById('filter-tahun').value;
-  const period = `${tahun}-${bulan}`;
-
   const tbody = document.getElementById('tabel-sk');
   tbody.innerHTML = `<tr><td colspan="6" 
     style="text-align:center;">Memuat data...</td></tr>`;
@@ -60,7 +44,8 @@ async function filterTabelSK() {
     const { data, error } = await db
       .from('surat_sakit')
       .select('*')
-      .eq('bulan', period)
+      .gte('tanggal', getHariIni() + 'T00:00:00')
+      .lte('tanggal', getHariIni() + 'T23:59:59')
       .order('tanggal', { ascending: false });
 
     if (error) throw error;
@@ -68,7 +53,7 @@ async function filterTabelSK() {
     if (!data || data.length === 0) {
       tbody.innerHTML = `<tr><td colspan="6" 
         style="text-align:center;color:#999;">
-        Belum ada data periode ini</td></tr>`;
+        Belum ada data bulan ini</td></tr>`;
       return;
     }
 
@@ -94,17 +79,21 @@ async function filterTabelSK() {
 }
 
 async function hapusSK(nomor) {
-  if (!confirm(`Yakin ingin menghapus data ${nomor}?`)) return;
-
-  try {
-    const { error } = await db.from('surat_sakit').delete().eq('nomor', nomor);
-    if (error) throw error;
-    tampilkanPopup('Data Surat Sakit berhasil dihapus!');
-    await loadTabelSK();
-    await updatePreviewNomor();
-  } catch (err) {
-    alert('Gagal hapus: ' + err.message);
-  }
+  tampilkanPopupHapus(
+    `Yakin ingin menghapus data ${nomor}?`,
+    async () => {
+      try {
+        const { error } = await db.from('surat_sakit')
+          .delete().eq('nomor', nomor);
+        if (error) throw error;
+        tampilkanPopup('Data Surat Sakit berhasil dihapus!');
+        await loadTabelSK();
+        await updatePreviewNomor();
+      } catch (err) {
+        alert('Gagal hapus: ' + err.message);
+      }
+    }
+  );
 }
 
 async function editSK(nomor) {
@@ -169,7 +158,6 @@ async function updateSK() {
     btn.onclick = simpanSuratSakit;
 
     resetForm();
-    initFilterSK();
     await loadTabelSK();
     await updatePreviewNomor();
 
@@ -209,5 +197,4 @@ async function cetakSK(nomor) {
 
 // Jalankan saat halaman dibuka
 updatePreviewNomor();
-initFilterSK();
 loadTabelSK();

@@ -22,7 +22,7 @@ async function simpanKwitansi() {
   };
 
   try {
-    await simpanKwitansiOnline(data);
+   await simpanKwitansiOnline(data);
     tampilkanPopup('Kwitansi berhasil disimpan!\nNomor: ' + nomor);
     resetForm();
     await loadTabelKW();
@@ -33,22 +33,6 @@ async function simpanKwitansi() {
 }
 
 async function loadTabelKW() {
-  await filterTabelKW();
-}
-
-function initFilterKW() {
-  const now = new Date();
-  document.getElementById('filter-bulan').value =
-    String(now.getMonth() + 1).padStart(2, '0');
-  document.getElementById('filter-tahun').value =
-    String(now.getFullYear());
-}
-
-async function filterTabelKW() {
-  const bulan  = document.getElementById('filter-bulan').value;
-  const tahun  = document.getElementById('filter-tahun').value;
-  const period = `${tahun}-${bulan}`;
-
   const tbody = document.getElementById('tabel-kw');
   tbody.innerHTML = `<tr><td colspan="6" 
     style="text-align:center;">Memuat data...</td></tr>`;
@@ -57,7 +41,8 @@ async function filterTabelKW() {
     const { data, error } = await db
       .from('kwitansi')
       .select('*')
-      .eq('bulan', period)
+      .gte('tanggal', getHariIni() + 'T00:00:00')
+      .lte('tanggal', getHariIni() + 'T23:59:59')
       .order('tanggal', { ascending: false });
 
     if (error) throw error;
@@ -65,7 +50,7 @@ async function filterTabelKW() {
     if (!data || data.length === 0) {
       tbody.innerHTML = `<tr><td colspan="6" 
         style="text-align:center;color:#999;">
-        Belum ada data periode ini</td></tr>`;
+        Belum ada data bulan ini</td></tr>`;
       return;
     }
 
@@ -91,17 +76,21 @@ async function filterTabelKW() {
 }
 
 async function hapusKW(nomor) {
-  if (!confirm(`Yakin ingin menghapus data ${nomor}?`)) return;
-
-  try {
-    const { error } = await db.from('kwitansi').delete().eq('nomor', nomor);
-    if (error) throw error;
-    tampilkanPopup('Data Kwitansi berhasil dihapus!');
-    await loadTabelKW();
-    await updatePreviewNomor();
-  } catch (err) {
-    alert('Gagal hapus: ' + err.message);
-  }
+  tampilkanPopupHapus(
+    `Yakin ingin menghapus data ${nomor}?`,
+    async () => {
+      try {
+        const { error } = await db.from('kwitansi')
+          .delete().eq('nomor', nomor);
+        if (error) throw error;
+        tampilkanPopup('Data Kwitansi berhasil dihapus!');
+        await loadTabelKW();
+        await updatePreviewNomor();
+      } catch (err) {
+        alert('Gagal hapus: ' + err.message);
+      }
+    }
+  );
 }
 
 async function editKW(nomor) {
@@ -160,7 +149,6 @@ async function updateKW() {
     btn.onclick = simpanKwitansi;
 
     resetForm();
-initFilterKW();
 await loadTabelKW();
 await updatePreviewNomor();
 
@@ -196,5 +184,4 @@ async function cetakKW(nomor) {
 
 // Jalankan saat halaman dibuka
 updatePreviewNomor();
-initFilterKW();
 loadTabelKW();

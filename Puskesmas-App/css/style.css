@@ -92,6 +92,11 @@ body {
   justify-content: space-between;
   align-items: center;
   box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
 }
 
 .nav-brand {
@@ -143,6 +148,7 @@ body {
   max-width: 1100px;
   margin: 32px auto;
   padding: 0 24px;
+  padding-top: 80px;
 }
 
 .container h1 {
@@ -197,6 +203,16 @@ body {
   border-radius: 12px;
   padding: 24px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+}
+
+.table-box table {
+  width: 100%;
+}
+
+.table-responsive {
+  overflow-x: auto;
+  overflow-y: auto;
+  max-height: 400px;
 }
 
 .table-box h2 {

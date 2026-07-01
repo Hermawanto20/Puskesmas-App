@@ -17,6 +17,26 @@
      style="width: auto; padding: 10px 32px;">OK</button>
   </div>
 </div>
+
+<!-- POPUP KONFIRMASI HAPUS -->
+<div id="popup-hapus" class="popup-overlay" style="display:none;">
+  <div class="popup-box">
+    <div class="popup-icon">🗑️</div>
+    <h3 class="popup-title" style="color:#dc2626;">Hapus Data?</h3>
+    <p class="popup-msg" id="popup-hapus-msg">Yakin ingin menghapus data ini?</p>
+    <div style="display:flex; gap:12px; justify-content:center;">
+      <button id="btn-hapus-ok" class="btn-primary" 
+        style="width:auto; padding:10px 28px; background:#dc2626;">
+        🗑️ Hapus
+      </button>
+      <button onclick="tutupPopupHapus()" class="btn-secondary" 
+        style="padding:10px 28px;">
+        Batal
+      </button>
+    </div>
+  </div>
+</div>
+
   <nav class="navbar">
     <div class="nav-brand">
   <img src="images/logo.png" alt="Logo">
@@ -102,42 +122,9 @@
     <div class="table-box" style="margin-top: 32px;">
   <h2>Riwayat Surat Sehat</h2>
 
-  <div class="filter-area" style="margin-bottom: 16px;">
-    <div class="filter-group">
-      <label>Bulan</label>
-      <select id="filter-bulan">
-        <option value="01">Januari</option>
-        <option value="02">Februari</option>
-        <option value="03">Maret</option>
-        <option value="04">April</option>
-        <option value="05">Mei</option>
-        <option value="06">Juni</option>
-        <option value="07">Juli</option>
-        <option value="08">Agustus</option>
-        <option value="09">September</option>
-        <option value="10">Oktober</option>
-        <option value="11">November</option>
-        <option value="12">Desember</option>
-      </select>
-    </div>
-    <div class="filter-group">
-      <label>Tahun</label>
-      <select id="filter-tahun">
-        <option value="2024">2024</option>
-        <option value="2025">2025</option>
-        <option value="2026">2026</option>
-      </select>
-    </div>
-    <div class="filter-group" style="align-self: flex-end;">
-      <button onclick="filterTabelSS()" class="btn-primary"
-        style="padding: 10px 20px; width: auto;">
-        🔍 Tampilkan
-      </button>
-    </div>
-  </div>
-
-  <table>
-        <thead>
+  <div class="table-responsive">
+<table>
+  <thead>
           <tr>
             <th>Nomor</th>
             <th>Nama</th>
@@ -148,6 +135,7 @@
         </thead>
         <tbody id="tabel-ss"></tbody>
       </table>
+   </div>
     </div>
   </div>
 
