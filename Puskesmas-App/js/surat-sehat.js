@@ -84,7 +84,6 @@ async function hapusSS(nomor) {
           .delete().eq('nomor', nomor);
         if (error) throw error;
         tampilkanPopup('Data Surat Sehat berhasil dihapus!');
-        initFilterSS();
         await loadTabelSS();
         await updatePreviewNomor();
       } catch (err) {
