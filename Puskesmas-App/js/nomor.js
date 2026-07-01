@@ -77,9 +77,11 @@ function tutupPopupHapus() {
 }
 
 function getHariIni() {
+  // Pakai timezone Asia/Jakarta (WIB UTC+7)
   const now = new Date();
-  const tahun = now.getFullYear();
-  const bulan = String(now.getMonth() + 1).padStart(2, '0');
-  const hari  = String(now.getDate()).padStart(2, '0');
+  const wib = new Date(now.getTime() + (7 * 60 * 60 * 1000));
+  const tahun = wib.getUTCFullYear();
+  const bulan = String(wib.getUTCMonth() + 1).padStart(2, '0');
+  const hari  = String(wib.getUTCDate()).padStart(2, '0');
   return `${tahun}-${bulan}-${hari}`;
 }

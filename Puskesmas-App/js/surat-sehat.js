@@ -42,8 +42,8 @@ async function loadTabelSS() {
     const { data, error } = await db
       .from('surat_sehat')
       .select('*')
-      .gte('tanggal', getHariIni() + 'T00:00:00')
-      .lte('tanggal', getHariIni() + 'T23:59:59')
+      .gte('tanggal', getHariIni() + 'T00:00:00+07:00')
+      .lte('tanggal', getHariIni() + 'T23:59:59+07:00')
       .order('tanggal', { ascending: false });
 
     if (error) throw error;
