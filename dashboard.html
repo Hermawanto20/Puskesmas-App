@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - Sistem Klinik</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="nav-brand">
+  <img src="images/logo.png" alt="Logo">
+  UPTD Puskesmas Sukmajaya
+  </div>
+    <div class="nav-menu">
+      <a href="dashboard.html">Dashboard</a>
+      <a href="surat-sehat.html">Surat Sehat</a>
+      <a href="surat-sakit.html">Surat Sakit</a>
+      <a href="kwitansi.html">Kwitansi</a>
+      <button onclick="logout()" class="btn-logout">Logout</button>
+    </div>
+  </nav>
+
+  <!-- KONTEN -->
+  <div class="container">
+    <h1>Dashboard</h1>
+    <p class="subtitle">Selamat datang, Admin 👋</p>
+
+    <!-- KARTU STATISTIK -->
+    <div class="card-grid">
+      <div class="card blue">
+        <div class="card-icon">📄</div>
+        <div class="card-info">
+          <h3 id="total-ss">0</h3>
+          <p>Surat Sehat Bulan Ini</p>
+        </div>
+      </div>
+      <div class="card red">
+        <div class="card-icon">🤒</div>
+        <div class="card-info">
+          <h3 id="total-sk">0</h3>
+          <p>Surat Sakit Bulan Ini</p>
+        </div>
+      </div>
+      <div class="card green">
+        <div class="card-icon">🧾</div>
+        <div class="card-info">
+          <h3 id="total-kw">0</h3>
+          <p>Kwitansi Bulan Ini</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- TABEL DATA TERBARU -->
+<div class="table-box">
+  <h2>Data Terbaru</h2>
+
+  <!-- FILTER -->
+  <div class="filter-area">
+    <div class="filter-group">
+      <label>Bulan</label>
+      <select id="filter-bulan">
+        <option value="01">Januari</option>
+        <option value="02">Februari</option>
+        <option value="03">Maret</option>
+        <option value="04">April</option>
+        <option value="05">Mei</option>
+        <option value="06">Juni</option>
+        <option value="07">Juli</option>
+        <option value="08">Agustus</option>
+        <option value="09">September</option>
+        <option value="10">Oktober</option>
+        <option value="11">November</option>
+        <option value="12">Desember</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label>Tahun</label>
+      <select id="filter-tahun">
+        <option value="2024">2024</option>
+        <option value="2025">2025</option>
+        <option value="2026">2026</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label>Jenis</label>
+      <select id="filter-jenis">
+        <option value="semua">Semua</option>
+        <option value="surat_sehat">Surat Sehat</option>
+        <option value="surat_sakit">Surat Sakit</option>
+        <option value="kwitansi">Kwitansi</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label>Nama Pasien</label>
+      <input type="text" id="filter-nama" placeholder="Cari nama...">
+    </div>
+
+    <div class="filter-group" style="align-self: flex-end;">
+      <button onclick="applyFilter()" class="btn-primary" 
+        style="padding: 10px 20px; width: auto;">
+        🔍 Cari
+      </button>
+      <button onclick="resetFilter()" class="btn-secondary" 
+        style="padding: 10px 20px; margin-left: 8px;">
+        🔄 Reset
+      </button>
+    </div>
+  </div>
+
+  <div class="table-responsive">
+<table>
+  <thead>
+      <tr>
+        <th>Nomor</th>
+        <th>Nama</th>
+        <th>Jenis</th>
+        <th>Tanggal</th>
+      </tr>
+    </thead>
+    <tbody id="tabel-data">
+      <tr>
+        <td colspan="4" style="text-align:center; color:#999;">
+          Belum ada data
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+
+  <!-- INFO TOTAL DATA -->
+  <div id="info-total" style="margin-top: 12px; color: #64748b; font-size: 13px;"></div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/nomor.js"></script>
+  <script src="js/dashboard.js"></script>
+</body>
+</html>
