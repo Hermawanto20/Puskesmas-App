@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Laporan - UPTD Puskesmas Sukmajaya</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- POPUP SUKSES -->
+<div id="popup-sukses" class="popup-overlay" style="display:none;">
+  <div class="popup-box">
+    <div class="popup-icon">✅</div>
+    <h3 class="popup-title">Berhasil!</h3>
+    <p class="popup-msg" id="popup-msg">Data berhasil disimpan!</p>
+    <button id="btn-popup-ok" onclick="tutupPopup()" class="btn-primary"
+      style="width: auto; padding: 10px 32px;">OK</button>
+  </div>
+</div>
+
+<nav class="navbar">
+  <div class="nav-brand">
+    <img src="images/logo.png" alt="Logo">
+    UPTD Puskesmas Sukmajaya
+  </div>
+  <div class="nav-menu">
+  <a href="dashboard.html">Dashboard</a>
+  <a href="surat-sehat.html">Surat Sehat</a>
+  <a href="surat-sakit.html">Surat Sakit</a>
+  <a href="kwitansi.html">Kwitansi</a>
+  <a href="laporan.html">Laporan</a>
+  <a href="users.html" id="menu-user">👥 Users</a>
+  <span id="nama-user" class="nama-user"></span>
+  <button onclick="logout()" class="btn-logout">Logout</button>
+</div>
+</nav>
+
+<div class="container">
+  <h1>📊 Laporan</h1>
+  <p class="subtitle">Laporan data berdasarkan filter tanggal dan jenis dokumen</p>
+
+  <!-- FILTER -->
+  <div class="form-card" style="margin-bottom: 24px;">
+    <div class="filter-area" style="margin-bottom: 0;">
+
+  <div class="filter-group">
+    <label>Tanggal Awal</label>
+    <input type="date" id="filter-dari">
+  </div>
+
+  <div class="filter-group">
+    <label>Tanggal Akhir</label>
+    <input type="date" id="filter-sampai">
+  </div>
+
+  <div class="filter-group">
+    <label>Jenis Dokumen</label>
+    <select id="filter-jenis">
+      <option value="semua">Semua</option>
+      <option value="surat_sehat">Surat Sehat</option>
+      <option value="surat_sakit">Surat Sakit</option>
+      <option value="kwitansi">Kwitansi</option>
+    </select>
+  </div>
+
+  <div class="filter-group" style="align-self: flex-end;">
+    <button onclick="tampilkanLaporan()" class="btn-primary"
+      style="padding: 10px 20px; width: auto;">
+      🔍 Tampilkan
+    </button>
+    <button onclick="resetLaporan()" class="btn-secondary"
+      style="padding: 10px 20px; margin-left: 8px;">
+      🔄 Reset
+    </button>
+  </div>
+
+</div>
+
+  <!-- RINGKASAN -->
+  <div id="ringkasan-area" style="display:none; margin-bottom: 24px;">
+    <div class="card-grid">
+      <div class="card blue">
+        <div class="card-icon">📄</div>
+        <div class="card-info">
+          <h3 id="ringkasan-ss">0</h3>
+          <p>Surat Sehat</p>
+        </div>
+      </div>
+      <div class="card red">
+        <div class="card-icon">🤒</div>
+        <div class="card-info">
+          <h3 id="ringkasan-sk">0</h3>
+          <p>Surat Sakit</p>
+        </div>
+      </div>
+      <div class="card green">
+        <div class="card-icon">🧾</div>
+        <div class="card-info">
+          <h3 id="ringkasan-kw">0</h3>
+          <p>Kwitansi</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOMBOL EXPORT -->
+  <div id="export-area" style="display:none; margin-bottom: 16px;">
+    <button onclick="exportExcel()" class="btn-export-excel">
+      📤 Export Excel
+    </button>
+    <span id="info-total-laporan"
+      style="margin-left: 16px; color: #64748b; font-size: 13px;"></span>
+  </div>
+
+  <!-- TABEL SURAT SEHAT -->
+  <div id="tabel-ss-area" style="display:none;">
+    <div class="table-box" style="margin-bottom: 24px;">
+      <h2>📄 Surat Sehat</h2>
+      <div class="table-responsive">
+        <table id="tabel-ss">
+          <thead>
+            <tr>
+              <th>No</th>
+              <th>Nomor Surat</th>
+              <th>Nama</th>
+              <th>NIK</th>
+              <th>Tgl Lahir</th>
+              <th>Jenis Kelamin</th>
+              <th>Alamat</th>
+              <th>Keperluan</th>
+              <th>Tgl Periksa</th>
+              <th>Keterangan</th>
+              <th>Posisi</th>
+              <th>Petugas</th>
+              <th>Tanggal Input</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-ss"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABEL SURAT SAKIT -->
+  <div id="tabel-sk-area" style="display:none;">
+    <div class="table-box" style="margin-bottom: 24px;">
+      <h2>🤒 Surat Sakit</h2>
+      <div class="table-responsive">
+        <table id="tabel-sk">
+          <thead>
+            <tr>
+              <th>No</th>
+              <th>Nomor Surat</th>
+              <th>Nama</th>
+              <th>NIK</th>
+              <th>Tgl Lahir</th>
+              <th>Jenis Kelamin</th>
+              <th>Alamat</th>
+              <th>Diagnosis</th>
+              <th>Lama Sakit</th>
+              <th>Tgl Mulai</th>
+              <th>Tgl Selesai</th>
+              <th>Dokter</th>
+              <th>Keterangan</th>
+              <th>Posisi</th>
+              <th>Petugas</th>
+              <th>Tanggal Input</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-sk"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABEL KWITANSI -->
+  <div id="tabel-kw-area" style="display:none;">
+    <div class="table-box" style="margin-bottom: 24px;">
+      <h2>🧾 Kwitansi</h2>
+      <div class="table-responsive">
+        <table id="tabel-kw">
+          <thead>
+            <tr>
+              <th>No</th>
+              <th>Nomor Kwitansi</th>
+              <th>Nama</th>
+              <th>Ref Surat</th>
+              <th>Layanan</th>
+              <th>Jumlah</th>
+              <th>Metode</th>
+              <th>Tgl Bayar</th>
+              <th>Keterangan</th>
+              <th>Posisi</th>
+              <th>Petugas</th>
+              <th>Tanggal Input</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-kw"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- PESAN KOSONG -->
+  <div id="pesan-kosong" style="display:none;">
+    <div class="table-box" style="text-align:center; padding: 40px; color: #999;">
+      Tidak ada data ditemukan untuk filter yang dipilih
+    </div>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="js/supabase.js"></script>
+<script src="js/app.js"></script>
+<script src="js/nomor.js"></script>
+<script src="js/laporan.js"></script>
+</body>
+</html>
