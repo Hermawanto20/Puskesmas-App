@@ -67,7 +67,7 @@ async function loadTabelKW() {
         <td>
           <button onclick="cetakKW('${d.nomor}')" class="btn-cetak">🖨️</button>
           <button onclick="editKW('${d.nomor}')" class="btn-edit">✏️</button>
-          ${getRole() === 'admin' ?
+          ${getRole() !== 'pimpinan' ?
           `<button onclick="hapusKW('${d.nomor}')" class="btn-hapus">🗑️</button>` :
           ''}
         </td>

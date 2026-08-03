@@ -534,3 +534,8 @@ tr:hover td {
   max-height: 300px;
   width: 100% !important;
 }
+
+/* Sembunyikan menu berdasarkan role */
+.hide-pimpinan {
+  display: none !important;
+}

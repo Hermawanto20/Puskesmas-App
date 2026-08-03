@@ -73,7 +73,7 @@ async function loadTabelSK() {
         <td>
           <button onclick="cetakSK('${d.nomor}')" class="btn-cetak">🖨️</button>
           <button onclick="editSK('${d.nomor}')" class="btn-edit">✏️</button>
-          ${getRole() === 'admin' ?
+          ${getRole() !== 'pimpinan' ?
           `<button onclick="hapusSK('${d.nomor}')" class="btn-hapus">🗑️</button>` :
           ''}
         </td>

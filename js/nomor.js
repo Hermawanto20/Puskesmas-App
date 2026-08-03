@@ -17,6 +17,15 @@ function getBulanIni() {
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 }
 
+function getHariIni() {
+  const now = new Date();
+  const wib = new Date(now.getTime() + (7 * 60 * 60 * 1000));
+  const tahun = wib.getUTCFullYear();
+  const bulan = String(wib.getUTCMonth() + 1).padStart(2, '0');
+  const hari  = String(wib.getUTCDate()).padStart(2, '0');
+  return `${tahun}-${bulan}-${hari}`;
+}
+
 function formatRupiah(angka) {
   return new Intl.NumberFormat('id-ID', {
     style: 'currency', currency: 'IDR', minimumFractionDigits: 0
@@ -39,19 +48,19 @@ function resetForm() {
   document.querySelectorAll('input, textarea, select').forEach(el => {
     el.value = '';
   });
-  document.getElementById('pesan-sukses').style.display = 'none';
+  const pesanSukses = document.getElementById('pesan-sukses');
+  if (pesanSukses) pesanSukses.style.display = 'none';
 }
 
 function logout() {
   localStorage.removeItem('isLogin');
+  localStorage.removeItem('user');
   window.location.href = 'index.html';
 }
 
 function tampilkanPopup(pesan) {
   document.getElementById('popup-msg').textContent = pesan;
   document.getElementById('popup-sukses').style.display = 'flex';
-
-  // Reset tombol OK popup supaya tidak terpengaruh tombol form
   const btnOK = document.getElementById('btn-popup-ok');
   btnOK.textContent = 'OK';
   btnOK.onclick = tutupPopup;
@@ -64,7 +73,6 @@ function tutupPopup() {
 function tampilkanPopupHapus(pesan, onKonfirmasi) {
   document.getElementById('popup-hapus-msg').textContent = pesan;
   document.getElementById('popup-hapus').style.display = 'flex';
-
   const btnOk = document.getElementById('btn-hapus-ok');
   btnOk.onclick = function() {
     tutupPopupHapus();
@@ -76,17 +84,6 @@ function tutupPopupHapus() {
   document.getElementById('popup-hapus').style.display = 'none';
 }
 
-function getHariIni() {
-  // Pakai timezone Asia/Jakarta (WIB UTC+7)
-  const now = new Date();
-  const wib = new Date(now.getTime() + (7 * 60 * 60 * 1000));
-  const tahun = wib.getUTCFullYear();
-  const bulan = String(wib.getUTCMonth() + 1).padStart(2, '0');
-  const hari  = String(wib.getUTCDate()).padStart(2, '0');
-  return `${tahun}-${bulan}-${hari}`;
-}
-
-// Tampilkan nama user & cek hak akses
 function initPage() {
   const user = getUser();
   if (!user) {
@@ -94,25 +91,44 @@ function initPage() {
     return;
   }
 
+  const role = user.role;
+
+  // Redirect pimpinan kalau buka halaman selain dashboard & laporan
+  const halamanSekarang = window.location.pathname.split('/').pop();
+  const halamanDiizinkan = ['dashboard.html', 'laporan.html', ''];
+  if (role === 'pimpinan' && !halamanDiizinkan.includes(halamanSekarang)) {
+    alert('Akses ditolak! Anda hanya bisa mengakses Dashboard dan Laporan.');
+    window.location.href = 'dashboard.html';
+    return;
+  }
+
   // Tampilkan nama user di navbar
   const namaEl = document.getElementById('nama-user');
   if (namaEl) {
-    namaEl.textContent = `👤 ${user.nama} | ${user.posisi} | ${user.role}`;
+    namaEl.textContent = `👤 ${user.nama} | ${user.posisi || '-'} | ${role}`;
   }
 
-  // Sembunyikan menu user kalau bukan admin
-  const menuUser = document.getElementById('menu-user');
-  if (menuUser && user.role !== 'admin') {
-    menuUser.style.display = 'none';
+  // Sembunyikan menu berdasarkan role
+  const menuSuratSehat = document.getElementById('menu-surat-sehat');
+  const menuSuratSakit = document.getElementById('menu-surat-sakit');
+  const menuKwitansi   = document.getElementById('menu-kwitansi');
+  const menuUser       = document.getElementById('menu-user');
+
+  if (role === 'pimpinan') {
+    if (menuSuratSehat) menuSuratSehat.style.display = 'none';
+    if (menuSuratSakit) menuSuratSakit.style.display = 'none';
+    if (menuKwitansi)   menuKwitansi.style.display   = 'none';
+    if (menuUser)       menuUser.style.display        = 'none';
+  } else if (role !== 'admin') {
+    if (menuUser) menuUser.style.display = 'none';
   }
-}
+} // ← tutup initPage
 
 function getNamaDokter() {
   const user = getUser();
   return user ? user.nama_dokter || '' : '';
 }
 
-// Load dropdown dokter dari tabel users
 async function loadDokter() {
   const selectDokter = document.getElementById('dokter');
   if (!selectDokter) return;
@@ -126,12 +142,10 @@ async function loadDokter() {
 
     if (error) throw error;
 
-    // Kosongkan dulu
     selectDokter.innerHTML = '<option value="">-- Pilih Dokter --</option>';
 
     if (!data || data.length === 0) return;
 
-    // Hapus duplikat
     const unik = [...new Set(data.map(d => d.nama_dokter))];
 
     unik.forEach(nama => {
@@ -141,7 +155,6 @@ async function loadDokter() {
       selectDokter.appendChild(option);
     });
 
-    // Auto-select kalau user login adalah dokter
     const namaDokterLogin = getNamaDokter();
     if (namaDokterLogin) {
       selectDokter.value = namaDokterLogin;

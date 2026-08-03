@@ -69,7 +69,7 @@ async function loadTabelSS() {
         <td>
           <button onclick="cetakSS('${d.nomor}')" class="btn-cetak">🖨️</button>
           <button onclick="editSS('${d.nomor}')" class="btn-edit">✏️</button>
-          ${getRole() === 'admin' ?
+          ${getRole() !== 'pimpinan' ?
           `<button onclick="hapusSS('${d.nomor}')" class="btn-hapus">🗑️</button>` :
           ''}
         </td>
