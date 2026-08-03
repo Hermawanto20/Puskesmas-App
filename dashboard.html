@@ -56,6 +56,75 @@
       </div>
     </div>
 
+    <!-- REKAP KEUANGAN -->
+<h2 style="margin-bottom: 16px; color: #1e293b;">💰 Rekap Keuangan</h2>
+
+<!-- FILTER REKAP -->
+<div class="filter-area" style="margin-bottom: 20px;">
+  <div class="filter-group">
+    <label>Periode</label>
+    <select id="filter-rekap" onchange="loadRekap()">
+      <option value="harian">Harian (Hari Ini)</option>
+      <option value="mingguan">Mingguan (7 Hari)</option>
+      <option value="bulanan" selected>Bulanan (Bulan Ini)</option>
+    </select>
+  </div>
+</div>
+
+<!-- KARTU REKAP -->
+<div class="card-grid" style="margin-bottom: 24px;">
+  <div class="card green">
+    <div class="card-icon">💵</div>
+    <div class="card-info">
+      <h3 id="rekap-total">Rp 0</h3>
+      <p id="rekap-label">Total Pendapatan</p>
+    </div>
+  </div>
+  <div class="card blue">
+    <div class="card-icon">🧾</div>
+    <div class="card-info">
+      <h3 id="rekap-jumlah">0</h3>
+      <p>Jumlah Transaksi</p>
+    </div>
+  </div>
+  <div class="card" style="border-color: #f59e0b;">
+    <div class="card-icon">📊</div>
+    <div class="card-info">
+      <h3 id="rekap-rata">Rp 0</h3>
+      <p>Rata-rata per Transaksi</p>
+    </div>
+  </div>
+</div>
+
+<!-- GRAFIK -->
+<div class="table-box" style="margin-bottom: 24px;">
+  <h2>📈 Grafik Pendapatan</h2>
+  <canvas id="grafikPendapatan" height="100"></canvas>
+</div>
+
+<!-- TABEL DETAIL TRANSAKSI -->
+<div class="table-box" style="margin-bottom: 24px;">
+  <h2>🧾 Detail Transaksi</h2>
+  <div class="table-responsive">
+    <table>
+      <thead>
+        <tr>
+          <th>No</th>
+          <th>Nomor</th>
+          <th>Nama</th>
+          <th>Layanan</th>
+          <th>Jumlah</th>
+          <th>Metode</th>
+          <th>Petugas</th>
+          <th>Posisi</th>
+          <th>Tanggal</th>
+        </tr>
+      </thead>
+      <tbody id="tabel-rekap"></tbody>
+    </table>
+  </div>
+</div>
+
     <!-- TABEL DATA TERBARU -->
 <div class="table-box">
   <h2>Data Terbaru</h2>
@@ -141,7 +210,8 @@
 
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="js/supabase.js"></script>
   <script src="js/app.js"></script>
   <script src="js/nomor.js"></script>

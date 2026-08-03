@@ -111,3 +111,43 @@ function getNamaDokter() {
   const user = getUser();
   return user ? user.nama_dokter || '' : '';
 }
+
+// Load dropdown dokter dari tabel users
+async function loadDokter() {
+  const selectDokter = document.getElementById('dokter');
+  if (!selectDokter) return;
+
+  try {
+    const { data, error } = await db
+      .from('users')
+      .select('nama_dokter')
+      .not('nama_dokter', 'is', null)
+      .neq('nama_dokter', '');
+
+    if (error) throw error;
+
+    // Kosongkan dulu
+    selectDokter.innerHTML = '<option value="">-- Pilih Dokter --</option>';
+
+    if (!data || data.length === 0) return;
+
+    // Hapus duplikat
+    const unik = [...new Set(data.map(d => d.nama_dokter))];
+
+    unik.forEach(nama => {
+      const option = document.createElement('option');
+      option.value = nama;
+      option.textContent = nama;
+      selectDokter.appendChild(option);
+    });
+
+    // Auto-select kalau user login adalah dokter
+    const namaDokterLogin = getNamaDokter();
+    if (namaDokterLogin) {
+      selectDokter.value = namaDokterLogin;
+    }
+
+  } catch (err) {
+    console.error('Gagal load dokter:', err);
+  }
+}

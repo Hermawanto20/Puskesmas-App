@@ -528,3 +528,9 @@ tr:hover td {
   padding: 4px 12px;
   border-radius: 20px;
 }
+
+/* === GRAFIK === */
+#grafikPendapatan {
+  max-height: 300px;
+  width: 100% !important;
+}

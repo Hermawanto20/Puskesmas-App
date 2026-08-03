@@ -1,11 +1,4 @@
 initPage();
-// Auto-fill nama dokter kalau ada
-const namaDokter = getNamaDokter();
-const inputDokter = document.getElementById('dokter');
-if (inputDokter && namaDokter) {
-  inputDokter.value = namaDokter;
-  inputDokter.placeholder = namaDokter;
-}
 
 async function simpanSuratSakit() {
   const nama = document.getElementById('nama').value.trim();
@@ -19,27 +12,28 @@ async function simpanSuratSakit() {
   const nomor = await generateNomorOnline('SK', 'surat_sakit');
 
   const data = {
-  nomor,
-  nama,
-  nik,
-  tgl_lahir   : document.getElementById('tgl-lahir').value   || null,
-  jk          : document.getElementById('jk').value          || null,
-  alamat      : document.getElementById('alamat').value      || null,
-  diagnosis   : document.getElementById('diagnosis').value   || null,
-  lama_sakit  : parseInt(document.getElementById('lama-sakit').value) || null,
-  tgl_mulai   : document.getElementById('tgl-mulai').value   || null,
-  tgl_selesai : document.getElementById('tgl-selesai').value || null,
-  dokter      : document.getElementById('dokter').value      || null,
-  keterangan  : document.getElementById('keterangan').value  || null,
-  bulan       : getBulanIni(),
-  posisi      : getPosisi(),
-  petugas     : getNamaUser()
+    nomor,
+    nama,
+    nik,
+    tgl_lahir   : document.getElementById('tgl-lahir').value   || null,
+    jk          : document.getElementById('jk').value          || null,
+    alamat      : document.getElementById('alamat').value      || null,
+    diagnosis   : document.getElementById('diagnosis').value   || null,
+    lama_sakit  : parseInt(document.getElementById('lama-sakit').value) || null,
+    tgl_mulai   : document.getElementById('tgl-mulai').value   || null,
+    tgl_selesai : document.getElementById('tgl-selesai').value || null,
+    dokter      : document.getElementById('dokter').value      || null,
+    keterangan  : document.getElementById('keterangan').value  || null,
+    bulan       : getBulanIni(),
+    posisi      : getPosisi(),
+    petugas     : getNamaUser()
   };
 
   try {
     await simpanSuratSakitOnline(data);
     tampilkanPopup('Surat Sakit berhasil disimpan!\nNomor: ' + nomor);
     resetForm();
+    await loadDokter();
     await loadTabelSK();
     await updatePreviewNomor();
   } catch (err) {
@@ -65,7 +59,7 @@ async function loadTabelSK() {
     if (!data || data.length === 0) {
       tbody.innerHTML = `<tr><td colspan="6" 
         style="text-align:center;color:#999;">
-        Belum ada data bulan ini</td></tr>`;
+        Belum ada data hari ini</td></tr>`;
       return;
     }
 
@@ -124,8 +118,11 @@ async function editSK(nomor) {
   document.getElementById('lama-sakit').value  = data.lama_sakit  || '';
   document.getElementById('tgl-mulai').value   = data.tgl_mulai   || '';
   document.getElementById('tgl-selesai').value = data.tgl_selesai || '';
-  document.getElementById('dokter').value      = data.dokter      || '';
   document.getElementById('keterangan').value  = data.keterangan  || '';
+
+  // Set dropdown dokter setelah load
+  await loadDokter();
+  document.getElementById('dokter').value = data.dokter || '';
 
   document.getElementById('preview-nomor').textContent = data.nomor;
   window.editNomorSK = nomor;
@@ -169,15 +166,16 @@ async function updateSK() {
     window.editNomorSK = null;
     window.isEditModeSK = false;
 
-   const btn = document.getElementById('btn-simpan');
+    const btn = document.getElementById('btn-simpan');
     btn.textContent = '💾 Simpan & Cetak';
     btn.onclick = simpanSuratSakit;
 
     resetForm();
+    await loadDokter();
     await loadTabelSK();
     await updatePreviewNomor();
 
-tampilkanPopup('Data Surat Sakit berhasil diupdate!');
+    tampilkanPopup('Data Surat Sakit berhasil diupdate!');
 
   } catch (err) {
     alert('Gagal update: ' + err.message);
@@ -195,19 +193,19 @@ async function cetakSK(nomor) {
   if (!data) return;
 
   const params = new URLSearchParams({
-  nomor      : data.nomor,
-  nama       : data.nama,
-  nik        : data.nik,
-  tglLahir   : data.tgl_lahir   || '',
-  jk         : data.jk          || '',
-  alamat     : data.alamat      || '',
-  diagnosis  : data.diagnosis   || '',
-  lamaSakit  : data.lama_sakit  || '',
-  tglMulai   : data.tgl_mulai   || '',
-  tglSelesai : data.tgl_selesai || '',
-  dokter     : data.dokter      || '',  
-  keterangan : data.keterangan  || ''
-});
+    nomor      : data.nomor,
+    nama       : data.nama,
+    nik        : data.nik,
+    tglLahir   : data.tgl_lahir   || '',
+    jk         : data.jk          || '',
+    alamat     : data.alamat      || '',
+    diagnosis  : data.diagnosis   || '',
+    lamaSakit  : data.lama_sakit  || '',
+    tglMulai   : data.tgl_mulai   || '',
+    tglSelesai : data.tgl_selesai || '',
+    dokter     : data.dokter      || '',
+    keterangan : data.keterangan  || ''
+  });
 
   window.open('cetak-surat-sakit.html?' + params.toString(), '_blank');
 }
@@ -215,3 +213,4 @@ async function cetakSK(nomor) {
 // Jalankan saat halaman dibuka
 updatePreviewNomor();
 loadTabelSK();
+loadDokter();

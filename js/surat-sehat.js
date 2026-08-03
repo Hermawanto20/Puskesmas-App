@@ -1,11 +1,4 @@
 initPage();
-// Auto-fill nama dokter kalau ada
-const namaDokter = getNamaDokter();
-const inputDokter = document.getElementById('dokter');
-if (inputDokter && namaDokter) {
-  inputDokter.value = namaDokter;
-  inputDokter.placeholder = namaDokter;
-}
 
 async function simpanSuratSehat() {
   const nama = document.getElementById('nama').value.trim();
@@ -119,7 +112,10 @@ async function editSS(nomor) {
   document.getElementById('alamat').value      = data.alamat      || '';
   document.getElementById('keperluan').value   = data.keperluan   || '';
   document.getElementById('tgl-periksa').value = data.tgl_periksa || '';
-  document.getElementById('dokter').value      = data.dokter      || '';
+  // Set nilai dropdown dokter
+  setTimeout(() => {
+  document.getElementById('dokter').value = data.dokter || '';
+   }, 300);
   document.getElementById('keterangan').value  = data.keterangan  || '';
 
   document.getElementById('preview-nomor').textContent = data.nomor;
@@ -206,3 +202,4 @@ const params = new URLSearchParams({
 // Jalankan saat halaman dibuka
 updatePreviewNomor();
 loadTabelSS();
+loadDokter();
