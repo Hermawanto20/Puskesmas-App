@@ -27,11 +27,12 @@ function autoFillJumlah() {
 async function simpanKwitansi() {
   const nama   = document.getElementById('nama').value.trim();
   const jumlah = document.getElementById('jumlah').value;
+  const layanan = document.getElementById('layanan').value;
 
-  if (!nama || !jumlah) {
-    alert('Nama dan jumlah bayar wajib diisi!');
-    return;
-  }
+  if (!nama || !jumlah || !layanan) {
+  alert('Nama, jenis layanan, dan jumlah bayar wajib diisi!');
+  return;
+}
 
   const nomor = await generateNomorOnline('KW', 'kwitansi');
 
