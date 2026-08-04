@@ -6,8 +6,6 @@ function initFilter() {
   const tahun  = now.getFullYear();
   const bulan  = String(now.getMonth() + 1).padStart(2, '0');
   const hari   = String(now.getDate()).padStart(2, '0');
-
-  // Default: dari awal bulan ini sampai hari ini
   document.getElementById('filter-dari').value   = `${tahun}-${bulan}-01`;
   document.getElementById('filter-sampai').value = `${tahun}-${bulan}-${hari}`;
   document.getElementById('filter-jenis').value  = 'semua';
@@ -28,7 +26,6 @@ async function tampilkanLaporan() {
     return;
   }
 
-  // Reset tampilan
   document.getElementById('tabel-ss-area').style.display  = 'none';
   document.getElementById('tabel-sk-area').style.display  = 'none';
   document.getElementById('tabel-kw-area').style.display  = 'none';
@@ -75,13 +72,11 @@ async function tampilkanLaporan() {
       return;
     }
 
-    // Ringkasan
     document.getElementById('ringkasan-ss').textContent = dataLaporan.ss.length;
     document.getElementById('ringkasan-sk').textContent = dataLaporan.sk.length;
     document.getElementById('ringkasan-kw').textContent = dataLaporan.kw.length;
     document.getElementById('ringkasan-area').style.display = 'block';
 
-    // Tabel
     if (dataLaporan.ss.length > 0) {
       renderTabelSS(dataLaporan.ss);
       document.getElementById('tabel-ss-area').style.display = 'block';
@@ -176,10 +171,10 @@ function formatTglSimple(tgl) {
 }
 
 function exportExcel() {
-  const dari   = document.getElementById('filter-dari').value;
-  const sampai = document.getElementById('filter-sampai').value;
+  const dari    = document.getElementById('filter-dari').value;
+  const sampai  = document.getElementById('filter-sampai').value;
   const periode = `${formatTglSimple(dari)} - ${formatTglSimple(sampai)}`;
-  const wb = XLSX.utils.book_new();
+  const wb      = XLSX.utils.book_new();
 
   if (dataLaporan.ss.length > 0) {
     const rows = [
@@ -188,19 +183,21 @@ function exportExcel() {
       [`Periode: ${periode}`],
       [],
       ['No','Nomor Surat','Nama','NIK','Tgl Lahir','Jenis Kelamin',
-       'Alamat','Keperluan','Tgl Periksa','Dokter','Keterangan','Posisi','Petugas','Tanggal Input'],
+       'Alamat','Keperluan','Tgl Periksa','Dokter','Keterangan',
+       'Posisi','Petugas','Tanggal Input'],
       ...dataLaporan.ss.map((d, i) => [
         i+1, d.nomor, d.nama, d.nik||'-',
         d.tgl_lahir ? formatTglSimple(d.tgl_lahir) : '-',
         d.jk||'-', d.alamat||'-', d.keperluan||'-',
         d.tgl_periksa ? formatTglSimple(d.tgl_periksa) : '-',
-        d.keterangan||'-', d.posisi||'-', d.petugas||'-', formatTanggal(d.tanggal)
+        d.dokter||'-', d.keterangan||'-',
+        d.posisi||'-', d.petugas||'-', formatTanggal(d.tanggal)
       ])
     ];
     const ws = XLSX.utils.aoa_to_sheet(rows);
     ws['!cols'] = [
-      {wch:5},{wch:20},{wch:25},{wch:20},{wch:15},
-      {wch:15},{wch:30},{wch:20},{wch:15},{wch:20},{wch:22}
+      {wch:5},{wch:20},{wch:25},{wch:20},{wch:15},{wch:15},
+      {wch:30},{wch:20},{wch:15},{wch:20},{wch:20},{wch:12},{wch:20},{wch:22}
     ];
     XLSX.utils.book_append_sheet(wb, ws, 'Surat Sehat');
   }
@@ -212,7 +209,8 @@ function exportExcel() {
       [`Periode: ${periode}`],
       [],
       ['No','Nomor Surat','Nama','NIK','Tgl Lahir','Jenis Kelamin',
-       'Alamat','Keperluan','Tgl Periksa','Dokter','Keterangan','Posisi','Petugas','Tanggal Input'],
+       'Alamat','Diagnosis','Lama Sakit','Tgl Mulai','Tgl Selesai',
+       'Dokter','Keterangan','Posisi','Petugas','Tanggal Input'],
       ...dataLaporan.sk.map((d, i) => [
         i+1, d.nomor, d.nama, d.nik||'-',
         d.tgl_lahir ? formatTglSimple(d.tgl_lahir) : '-',
@@ -220,13 +218,15 @@ function exportExcel() {
         d.lama_sakit ? d.lama_sakit+' hari' : '-',
         d.tgl_mulai ? formatTglSimple(d.tgl_mulai) : '-',
         d.tgl_selesai ? formatTglSimple(d.tgl_selesai) : '-',
-        d.keterangan||'-', d.posisi||'-', d.petugas||'-', formatTanggal(d.tanggal)
+        d.dokter||'-', d.keterangan||'-',
+        d.posisi||'-', d.petugas||'-', formatTanggal(d.tanggal)
       ])
     ];
     const ws = XLSX.utils.aoa_to_sheet(rows);
     ws['!cols'] = [
       {wch:5},{wch:20},{wch:25},{wch:20},{wch:15},{wch:15},
-      {wch:30},{wch:20},{wch:12},{wch:15},{wch:15},{wch:20},{wch:22}
+      {wch:30},{wch:20},{wch:12},{wch:15},{wch:15},{wch:20},
+      {wch:20},{wch:12},{wch:20},{wch:22}
     ];
     XLSX.utils.book_append_sheet(wb, ws, 'Surat Sakit');
   }
@@ -237,19 +237,21 @@ function exportExcel() {
       ['UPTD Puskesmas Sukmajaya'],
       [`Periode: ${periode}`],
       [],
-      ['No','Nomor Surat','Nama','NIK','Tgl Lahir','Jenis Kelamin',
-       'Alamat','Keperluan','Tgl Periksa','Keterangan','Posisi','Petugas','Tanggal Input'],
+      ['No','Nomor Kwitansi','Nama','Ref Surat','Layanan',
+       'Jumlah','Metode','Tgl Bayar','Keterangan',
+       'Posisi','Petugas','Tanggal Input'],
       ...dataLaporan.kw.map((d, i) => [
         i+1, d.nomor, d.nama, d.ref_surat||'-',
         d.layanan||'-', d.jumlah||0, d.metode||'-',
         d.tgl_bayar ? formatTglSimple(d.tgl_bayar) : '-',
-        d.keterangan||'-', d.posisi||'-', d.petugas||'-', formatTanggal(d.tanggal)
+        d.keterangan||'-', d.posisi||'-',
+        d.petugas||'-', formatTanggal(d.tanggal)
       ])
     ];
     const ws = XLSX.utils.aoa_to_sheet(rows);
     ws['!cols'] = [
       {wch:5},{wch:20},{wch:25},{wch:20},{wch:20},
-      {wch:15},{wch:15},{wch:15},{wch:20},{wch:22}
+      {wch:15},{wch:15},{wch:15},{wch:20},{wch:12},{wch:20},{wch:22}
     ];
     XLSX.utils.book_append_sheet(wb, ws, 'Kwitansi');
   }
@@ -270,6 +272,7 @@ function resetLaporan() {
 
 function logout() {
   localStorage.removeItem('isLogin');
+  localStorage.removeItem('user');
   window.location.href = 'index.html';
 }
 

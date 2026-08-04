@@ -1,4 +1,29 @@
 initPage();
+
+function autoFillJumlah() {
+  const layanan     = document.getElementById('layanan').value;
+  const inputJumlah = document.getElementById('jumlah');
+
+  const harga = {
+    'Pendaftaran KTP Non Depok' : 20000,
+    'Surat Sehat KTP Depok'     : 25000,
+    'Surat Sehat KTP Non Depok' : 45000,
+  };
+
+  if (harga[layanan] !== undefined) {
+    inputJumlah.value    = harga[layanan];
+    inputJumlah.readOnly = true;
+    inputJumlah.style.background = '#f1f5f9';
+    inputJumlah.style.color      = '#64748b';
+  } else {
+    inputJumlah.value    = '';
+    inputJumlah.readOnly = false;
+    inputJumlah.style.background = '';
+    inputJumlah.style.color      = '';
+  }
+}
+
+
 async function simpanKwitansi() {
   const nama   = document.getElementById('nama').value.trim();
   const jumlah = document.getElementById('jumlah').value;
