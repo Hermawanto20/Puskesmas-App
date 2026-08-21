@@ -42,7 +42,7 @@ async function simpanKwitansi() {
   ref_surat  : document.getElementById('ref-surat').value  || null,
   layanan    : document.getElementById('layanan').value    || null,
   jumlah     : parseInt(jumlah),
-  metode     : document.getElementById('metode').value     || null,
+  metode     : document.getElementById('metode').value     || 'Tunai',
   tgl_bayar  : document.getElementById('tgl-bayar').value  || null,
   keterangan : document.getElementById('keterangan').value || null,
   bulan      : getBulanIni(),
