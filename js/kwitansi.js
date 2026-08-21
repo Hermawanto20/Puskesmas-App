@@ -8,6 +8,8 @@ function autoFillJumlah() {
     'Pendaftaran KTP Non Depok' : 20000,
     'Surat Sehat KTP Depok'     : 25000,
     'Surat Sehat KTP Non Depok' : 45000,
+    'Psikolog KTP Depok'       : 30000,
+    'Psikolog KTP Non Depok'   : 50000,
   };
 
   if (harga[layanan] !== undefined) {
