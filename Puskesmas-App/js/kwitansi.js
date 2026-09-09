@@ -18,6 +18,7 @@ async function simpanKwitansi() {
   jumlah     : parseInt(jumlah),
   metode     : document.getElementById('metode').value     || null,
   tgl_bayar  : document.getElementById('tgl-bayar').value  || null,
+  jam_bayar  : document.getElementById('jam-bayar').value  || null,
   keterangan : document.getElementById('keterangan').value || null,
   bulan      : getBulanIni(),
   posisi     : getPosisi(),
@@ -37,7 +38,7 @@ async function simpanKwitansi() {
 
 async function loadTabelKW() {
   const tbody = document.getElementById('tabel-kw');
-  tbody.innerHTML = `<tr><td colspan="6" 
+  tbody.innerHTML = `<tr><td colspan="8" 
     style="text-align:center;">Memuat data...</td></tr>`;
 
   try {
@@ -63,6 +64,8 @@ async function loadTabelKW() {
         <td>${d.nama}</td>
         <td>${d.layanan || '-'}</td>
         <td>${formatRupiah(d.jumlah)}</td>
+        <td>${d.tgl_bayar ? formatTglSimple(d.tgl_bayar) : '-'}</td>
+        <td>${d.jam_bayar || '-'}</td>
         <td>${formatTanggal(d.tanggal)}</td>
         <td>
           <button onclick="cetakKW('${d.nomor}')" class="btn-cetak">🖨️</button>
@@ -109,6 +112,7 @@ async function editKW(nomor) {
   document.getElementById('jumlah').value     = data.jumlah     || '';
   document.getElementById('metode').value     = data.metode     || '';
   document.getElementById('tgl-bayar').value  = data.tgl_bayar  || '';
+  document.getElementById('jam-bayar').value  = data.jam_bayar  || '';
   document.getElementById('keterangan').value = data.keterangan || '';
 
   document.getElementById('preview-nomor').textContent = data.nomor;
@@ -138,6 +142,7 @@ async function updateKW() {
     jumlah     : parseInt(jumlah),
     metode     : document.getElementById('metode').value     || null,
     tgl_bayar  : document.getElementById('tgl-bayar').value  || null,
+    jam_bayar  : document.getElementById('jam-bayar').value  || null,
     keterangan : document.getElementById('keterangan').value || null,
   };
 
@@ -182,6 +187,7 @@ async function cetakKW(nomor) {
     jumlah   : data.jumlah    || 0,
     metode   : data.metode    || '',
     tglBayar : data.tgl_bayar || '',
+    jamBayar : data.jam_bayar || '',
   });
 
   window.open('cetak-kwitansi.html?' + params.toString(), '_blank');

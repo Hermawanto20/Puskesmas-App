@@ -185,7 +185,10 @@
     document.getElementById('layanan').textContent     = getParam('layanan');
     document.getElementById('metode').textContent      = getParam('metode');
     document.getElementById('jumlah').textContent      = fmtRupiah(getParam('jumlah'));
-    document.getElementById('tgl-bayar').textContent   = fmtTgl(getParam('tglBayar'));
+    const tglBayar = getParam('tglBayar');
+const jamBayar = getParam('jamBayar');
+document.getElementById('tgl-bayar').textContent = 
+  tglBayar !== '-' ? fmtTgl(tglBayar) + (jamBayar !== '-' ? ' ' + jamBayar : '') : '-';
 
     const now = new Date();
     document.getElementById('kota-tgl').textContent =
