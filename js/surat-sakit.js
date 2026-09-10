@@ -1,11 +1,87 @@
 initPage();
 
+// ==========================================
+// AUTO FILL TANGGAL SEKARANG
+// ==========================================
+function autoFillTanggal() {
+  const hari = getHariIni();
+  document.getElementById('tgl-mulai').value   = hari;
+  document.getElementById('tgl-selesai').value = hari;
+  hitungLamaIstirahat();
+}
+
+// ==========================================
+// HITUNG LAMA ISTIRAHAT OTOMATIS
+// ==========================================
+function hitungLamaIstirahat() {
+  const tglMulai   = document.getElementById('tgl-mulai').value;
+  const tglSelesai = document.getElementById('tgl-selesai').value;
+  const inputLama  = document.getElementById('lama-sakit');
+
+  if (!tglMulai || !tglSelesai) {
+    inputLama.value = '';
+    return;
+  }
+
+  const mulai   = new Date(tglMulai);
+  const selesai = new Date(tglSelesai);
+
+  if (selesai < mulai) {
+    alert('Tanggal selesai tidak boleh sebelum tanggal mulai!');
+    document.getElementById('tgl-selesai').value = tglMulai;
+    inputLama.value = 1;
+    return;
+  }
+
+  const selisih   = Math.round((selesai - mulai) / (1000 * 60 * 60 * 24)) + 1;
+  inputLama.value = selisih;
+}
+
+// ==========================================
+// RESET FORM SURAT SAKIT
+// ==========================================
+function resetFormSuratSakit() {
+  document.getElementById('nama').value      = '';
+  document.getElementById('nik').value       = '';
+  document.getElementById('tgl-lahir').value = '';
+  document.getElementById('jk').value        = '';
+  document.getElementById('alamat').value    = '';
+  document.getElementById('diagnosis').value = '';
+  document.getElementById('keterangan').value = '';
+  document.getElementById('lama-sakit').value = '';
+  document.getElementById('dokter').value    = '';
+
+  // Auto-fill tanggal sekarang
+  autoFillTanggal();
+
+  // Reload dropdown dokter
+  loadDokter();
+
+  const pesanSukses = document.getElementById('pesan-sukses');
+  if (pesanSukses) pesanSukses.style.display = 'none';
+}
+
+// ==========================================
+// SIMPAN SURAT SAKIT
+// ==========================================
 async function simpanSuratSakit() {
-  const nama = document.getElementById('nama').value.trim();
-  const nik  = document.getElementById('nik').value.trim();
+  const nama       = document.getElementById('nama').value.trim();
+  const nik        = document.getElementById('nik').value.trim();
+  const diagnosis  = document.getElementById('diagnosis').value.trim();
+  const keterangan = document.getElementById('keterangan').value.trim();
 
   if (!nama || !nik) {
     alert('Nama dan NIK wajib diisi!');
+    return;
+  }
+
+  if (!diagnosis) {
+    alert('Diagnosis / Keluhan wajib diisi!');
+    return;
+  }
+
+  if (!keterangan) {
+    alert('Keterangan Tambahan wajib diisi!');
     return;
   }
 
@@ -18,12 +94,12 @@ async function simpanSuratSakit() {
     tgl_lahir   : document.getElementById('tgl-lahir').value   || null,
     jk          : document.getElementById('jk').value          || null,
     alamat      : document.getElementById('alamat').value      || null,
-    diagnosis   : document.getElementById('diagnosis').value   || null,
+    diagnosis,
     lama_sakit  : parseInt(document.getElementById('lama-sakit').value) || null,
     tgl_mulai   : document.getElementById('tgl-mulai').value   || null,
     tgl_selesai : document.getElementById('tgl-selesai').value || null,
     dokter      : document.getElementById('dokter').value      || null,
-    keterangan  : document.getElementById('keterangan').value  || null,
+    keterangan,
     bulan       : getBulanIni(),
     posisi      : getPosisi(),
     petugas     : getNamaUser()
@@ -32,8 +108,7 @@ async function simpanSuratSakit() {
   try {
     await simpanSuratSakitOnline(data);
     tampilkanPopup('Surat Sakit berhasil disimpan!\nNomor: ' + nomor);
-    resetForm();
-    await loadDokter();
+    resetFormSuratSakit();
     await loadTabelSK();
     await updatePreviewNomor();
   } catch (err) {
@@ -41,9 +116,12 @@ async function simpanSuratSakit() {
   }
 }
 
+// ==========================================
+// LOAD TABEL
+// ==========================================
 async function loadTabelSK() {
   const tbody = document.getElementById('tabel-sk');
-  tbody.innerHTML = `<tr><td colspan="6" 
+  tbody.innerHTML = `<tr><td colspan="6"
     style="text-align:center;">Memuat data...</td></tr>`;
 
   try {
@@ -57,7 +135,7 @@ async function loadTabelSK() {
     if (error) throw error;
 
     if (!data || data.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="6" 
+      tbody.innerHTML = `<tr><td colspan="6"
         style="text-align:center;color:#999;">
         Belum ada data hari ini</td></tr>`;
       return;
@@ -68,7 +146,7 @@ async function loadTabelSK() {
         <td><b>${d.nomor}</b></td>
         <td>${d.nama}</td>
         <td>${d.diagnosis || '-'}</td>
-        <td>${d.lama_sakit || '-'} hari</td>
+        <td>${d.lama_sakit ? d.lama_sakit + ' hari' : '-'}</td>
         <td>${formatTanggal(d.tanggal)}</td>
         <td>
           <button onclick="cetakSK('${d.nomor}')" class="btn-cetak">🖨️</button>
@@ -80,12 +158,15 @@ async function loadTabelSK() {
       </tr>
     `).join('');
   } catch (err) {
-    tbody.innerHTML = `<tr><td colspan="6" 
+    tbody.innerHTML = `<tr><td colspan="6"
       style="text-align:center;color:red;">
       Gagal memuat data</td></tr>`;
   }
 }
 
+// ==========================================
+// HAPUS
+// ==========================================
 async function hapusSK(nomor) {
   tampilkanPopupHapus(
     `Yakin ingin menghapus data ${nomor}?`,
@@ -104,6 +185,9 @@ async function hapusSK(nomor) {
   );
 }
 
+// ==========================================
+// EDIT
+// ==========================================
 async function editSK(nomor) {
   const { data } = await db.from('surat_sakit')
     .select('*').eq('nomor', nomor).single();
@@ -120,27 +204,36 @@ async function editSK(nomor) {
   document.getElementById('tgl-selesai').value = data.tgl_selesai || '';
   document.getElementById('keterangan').value  = data.keterangan  || '';
 
-  // Set dropdown dokter setelah load
+  // Set dropdown dokter
   await loadDokter();
   document.getElementById('dokter').value = data.dokter || '';
 
   document.getElementById('preview-nomor').textContent = data.nomor;
-  window.editNomorSK = nomor;
+  window.editNomorSK  = nomor;
   window.isEditModeSK = true;
 
-  const btn = document.getElementById('btn-simpan');
+  const btn       = document.getElementById('btn-simpan');
   btn.textContent = '💾 Update Data';
-  btn.onclick = updateSK;
+  btn.onclick     = updateSK;
 
   window.scrollTo({top: 0, behavior: 'smooth'});
 }
 
+// ==========================================
+// UPDATE
+// ==========================================
 async function updateSK() {
-  const nama = document.getElementById('nama').value.trim();
-  const nik  = document.getElementById('nik').value.trim();
+  const nama       = document.getElementById('nama').value.trim();
+  const nik        = document.getElementById('nik').value.trim();
+  const keterangan = document.getElementById('keterangan').value.trim();
 
   if (!nama || !nik) {
     alert('Nama dan NIK wajib diisi!');
+    return;
+  }
+
+  if (!keterangan) {
+    alert('Keterangan Tambahan wajib diisi!');
     return;
   }
 
@@ -155,7 +248,7 @@ async function updateSK() {
     tgl_mulai   : document.getElementById('tgl-mulai').value   || null,
     tgl_selesai : document.getElementById('tgl-selesai').value || null,
     dokter      : document.getElementById('dokter').value      || null,
-    keterangan  : document.getElementById('keterangan').value  || null,
+    keterangan,
   };
 
   try {
@@ -163,15 +256,14 @@ async function updateSK() {
       .update(data).eq('nomor', window.editNomorSK);
     if (error) throw error;
 
-    window.editNomorSK = null;
+    window.editNomorSK  = null;
     window.isEditModeSK = false;
 
-    const btn = document.getElementById('btn-simpan');
+    const btn       = document.getElementById('btn-simpan');
     btn.textContent = '💾 Simpan & Cetak';
-    btn.onclick = simpanSuratSakit;
+    btn.onclick     = simpanSuratSakit;
 
-    resetForm();
-    await loadDokter();
+    resetFormSuratSakit();
     await loadTabelSK();
     await updatePreviewNomor();
 
@@ -182,11 +274,17 @@ async function updateSK() {
   }
 }
 
+// ==========================================
+// PREVIEW NOMOR
+// ==========================================
 async function updatePreviewNomor() {
   document.getElementById('preview-nomor').textContent =
     await generateNomorOnline('SK', 'surat_sakit');
 }
 
+// ==========================================
+// CETAK
+// ==========================================
 async function cetakSK(nomor) {
   const { data } = await db.from('surat_sakit')
     .select('*').eq('nomor', nomor).single();
@@ -210,7 +308,10 @@ async function cetakSK(nomor) {
   window.open('cetak-surat-sakit.html?' + params.toString(), '_blank');
 }
 
-// Jalankan saat halaman dibuka
+// ==========================================
+// JALANKAN SAAT HALAMAN DIBUKA
+// ==========================================
 updatePreviewNomor();
 loadTabelSK();
 loadDokter();
+autoFillTanggal();

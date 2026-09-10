@@ -2,6 +2,9 @@ initPage();
 
 let grafikInstance = null;
 
+// ==========================================
+// LOAD DASHBOARD
+// ==========================================
 async function loadDashboard() {
   try {
     const stats = await getStatistikBulanIni();
@@ -12,8 +15,59 @@ async function loadDashboard() {
     console.error('Error statistik:', err);
   }
 
+  await loadRekapShift();
   await applyFilter();
   await loadRekap();
+}
+
+// ==========================================
+// REKAP SHIFT HARIAN
+// ==========================================
+async function loadRekapShift() {
+  try {
+    const hari = getHariIni();
+
+    const { data, error } = await db
+      .from('kwitansi')
+      .select('jumlah, jam_bayar')
+      .gte('tanggal', hari + 'T00:00:00+07:00')
+      .lte('tanggal', hari + 'T23:59:59+07:00');
+
+    if (error) throw error;
+
+    const transaksi = data || [];
+
+    let totalPagi  = 0, jmlPagi  = 0;
+    let totalSore  = 0, jmlSore  = 0;
+    let totalMalam = 0, jmlMalam = 0;
+
+    transaksi.forEach(d => {
+      const jumlah = d.jumlah || 0;
+      const jam    = d.jam_bayar || '00:00';
+      const jamInt = parseInt(jam.replace(':', ''));
+
+      if (jamInt >= 0 && jamInt <= 1359) {
+        totalPagi += jumlah;
+        jmlPagi++;
+      } else if (jamInt >= 1400 && jamInt <= 2100) {
+        totalSore += jumlah;
+        jmlSore++;
+      } else if (jamInt >= 2101 && jamInt <= 2359) {
+        totalMalam += jumlah;
+        jmlMalam++;
+      }
+    });
+
+    document.getElementById('shift-pagi').textContent         = formatRupiah(totalPagi);
+    document.getElementById('shift-pagi-jumlah').textContent  = jmlPagi + ' transaksi';
+    document.getElementById('shift-sore').textContent         = formatRupiah(totalSore);
+    document.getElementById('shift-sore-jumlah').textContent  = jmlSore + ' transaksi';
+    document.getElementById('shift-malam').textContent        = formatRupiah(totalMalam);
+    document.getElementById('shift-malam-jumlah').textContent = jmlMalam + ' transaksi';
+
+  } catch (err) {
+    console.error('Error rekap shift:', err);
+  }
 }
 
 // ==========================================
@@ -67,7 +121,7 @@ async function applyFilter() {
       `Menampilkan ${semua.length} data`;
 
     if (semua.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="4" 
+      tbody.innerHTML = `<tr><td colspan="4"
         style="text-align:center;color:#999;">
         Tidak ada data ditemukan</td></tr>`;
       return;
@@ -86,7 +140,7 @@ async function applyFilter() {
 
   } catch (err) {
     console.error('Error filter:', err);
-    tbody.innerHTML = `<tr><td colspan="4" 
+    tbody.innerHTML = `<tr><td colspan="4"
       style="text-align:center;color:red;">
       Gagal memuat data</td></tr>`;
   }
@@ -104,26 +158,24 @@ async function loadRekap() {
 
   if (periode === 'harian') {
     const hari = getHariIni();
-    dari   = hari + 'T00:00:00+07:00';
-    sampai = hari + 'T23:59:59+07:00';
+    dari         = hari + 'T00:00:00+07:00';
+    sampai       = hari + 'T23:59:59+07:00';
     labelPeriode = 'Hari Ini';
   } else if (periode === 'mingguan') {
-    // 7 hari ke belakang
     const tglSampai = getHariIni();
     const tglDari   = new Date(wib);
     tglDari.setDate(tglDari.getUTCDate() - 6);
     const dd = String(tglDari.getUTCDate()).padStart(2, '0');
     const mm = String(tglDari.getUTCMonth() + 1).padStart(2, '0');
     const yy = tglDari.getUTCFullYear();
-    dari   = `${yy}-${mm}-${dd}T00:00:00+07:00`;
-    sampai = tglSampai + 'T23:59:59+07:00';
+    dari         = `${yy}-${mm}-${dd}T00:00:00+07:00`;
+    sampai       = tglSampai + 'T23:59:59+07:00';
     labelPeriode = '7 Hari Terakhir';
   } else {
-    // Bulanan
     const tahun = wib.getUTCFullYear();
     const bulan = String(wib.getUTCMonth() + 1).padStart(2, '0');
-    dari   = `${tahun}-${bulan}-01T00:00:00+07:00`;
-    sampai = getHariIni() + 'T23:59:59+07:00';
+    dari         = `${tahun}-${bulan}-01T00:00:00+07:00`;
+    sampai       = getHariIni() + 'T23:59:59+07:00';
     labelPeriode = 'Bulan Ini';
   }
 
@@ -142,16 +194,12 @@ async function loadRekap() {
     const jumlah    = transaksi.length;
     const rata      = jumlah > 0 ? Math.round(total / jumlah) : 0;
 
-    // Update kartu
     document.getElementById('rekap-total').textContent  = formatRupiah(total);
     document.getElementById('rekap-jumlah').textContent = jumlah;
     document.getElementById('rekap-rata').textContent   = formatRupiah(rata);
     document.getElementById('rekap-label').textContent  = `Total Pendapatan (${labelPeriode})`;
 
-    // Update tabel detail
     renderTabelRekap(transaksi);
-
-    // Update grafik
     renderGrafik(transaksi, periode);
 
   } catch (err) {
@@ -159,11 +207,14 @@ async function loadRekap() {
   }
 }
 
+// ==========================================
+// RENDER TABEL REKAP
+// ==========================================
 function renderTabelRekap(data) {
   const tbody = document.getElementById('tabel-rekap');
 
   if (!data || data.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="9" 
+    tbody.innerHTML = `<tr><td colspan="9"
       style="text-align:center;color:#999;">
       Belum ada transaksi</td></tr>`;
     return;
@@ -186,8 +237,10 @@ function renderTabelRekap(data) {
   `).join('');
 }
 
+// ==========================================
+// RENDER GRAFIK
+// ==========================================
 function renderGrafik(data, periode) {
-  // Siapkan label & nilai
   const grupData = {};
 
   data.forEach(d => {
@@ -196,16 +249,13 @@ function renderGrafik(data, periode) {
 
     let label;
     if (periode === 'harian') {
-      // Per jam
       label = String(wib.getUTCHours()).padStart(2, '0') + ':00';
     } else if (periode === 'mingguan') {
-      // Per hari
       label = wib.toLocaleDateString('id-ID', {
         weekday: 'short', day: '2-digit', month: 'short',
         timeZone: 'Asia/Jakarta'
       });
     } else {
-      // Per tanggal
       label = String(wib.getUTCDate()).padStart(2, '0') + '/' +
               String(wib.getUTCMonth() + 1).padStart(2, '0');
     }
@@ -216,7 +266,6 @@ function renderGrafik(data, periode) {
   const labels = Object.keys(grupData);
   const values = Object.values(grupData);
 
-  // Hapus grafik lama
   if (grafikInstance) {
     grafikInstance.destroy();
   }
@@ -257,6 +306,9 @@ function renderGrafik(data, periode) {
   });
 }
 
+// ==========================================
+// HELPER
+// ==========================================
 function getBadgeClass(jenis) {
   if (jenis === 'Surat Sehat') return 'badge-blue';
   if (jenis === 'Surat Sakit') return 'badge-red';
@@ -285,6 +337,8 @@ function logout() {
   window.location.href = 'index.html';
 }
 
-// Jalankan saat halaman dibuka
+// ==========================================
+// JALANKAN SAAT HALAMAN DIBUKA
+// ==========================================
 initFilter();
 loadDashboard();
